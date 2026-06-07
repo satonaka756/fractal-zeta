@@ -198,16 +198,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_131.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_132.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_133.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_134.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_135.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_136.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_137.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_138.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_139.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_140.pdf)
+- [非線形螺旋作用素による高次モジュラリティと障害構造 (PDF)](paper7_131.pdf)
+- [不確定性原理の導出（忘却構造から）　短報 (PDF)](paper7_132.pdf)
+- [不変核の構成アルゴリズム (PDF)](paper7_133.pdf)
+- [不変核理論と確率的逆元 (PDF)](paper7_134.pdf)
+- [分類定理と分数微分(PDF)](paper7_135.pdf)
+- [補遺論文　融合代数構造上のオイラー積についての考察 (PDF)](paper7_136.pdf)
+- [忘却基本定理と非可換性とローレンツ構造の最小構成 (PDF)](paper7_137.pdf)
+- [忘却構造の非可換性と臨界次元 (PDF)](paper7_138.pdf)
+- [無限グラフとループ・ツリー混合フラクタル (PDF)](paper7_139.pdf)
+- [問いI：公理D（準フーリエ性）と Jordan 生成 (PDF)](paper7_140.pdf)
+
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_141.pdf)
