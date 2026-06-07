@@ -159,16 +159,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_101.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_102pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_103.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_104.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_105.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_106.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_107.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_108.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_109.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_110.pdf)
+- [停止定理と停止的幾何 (PDF)](paper7_101.pdf)
+- [停止定理の修正・補足論文 (PDF)](paper7_102pdf)
+- [導来圏におけるゼータの構成 (PDF)](paper7_103.pdf)
+- [導来圏におけるゼータの構成（重複？）(PDF)](paper7_104.pdf)
+- [導来圏におけるゼータの構成の続きかつ技術的補足(PDF)](paper7_105.pdf)
+- [導来圏におけるゼータの構成の続きかつ技術的補足（重複？）(PDF)](paper7_106.pdf)
+- [八元数からの停止定理(PDF)](paper7_107.pdf)
+- [半群イデアルフラクタル準連結位相の次元階層論(PDF)](paper7_108.pdf)
+- [半群イデアル拡大の概念の基礎論的考察(PDF)](paper7_109.pdf)
+- [半群イデアル拡大の概念の整理(PDF)](paper7_110.pdf)
+
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_111.pdf)
