@@ -133,16 +133,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_81.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_82.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_83.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_84.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_85.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_86.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_87.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_88.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_89.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_90.pdf)
+- [準連結構造の公理的導出における，R4 = Id 公理に関する補足 (PDF)](paper7_81.pdf)
+- [準連結性公理と４基本定理 (PDF)](paper7_82.pdf)
+- [準連結性公理と４基本定理（重複？）(PDF)](paper7_83.pdf)
+- [準連結的フラクタル空間と弦理論Part２(PDF)](paper7_84.pdf)
+- [準連結的フラクタル空間と弦理論Part１(PDF)](paper7_85.pdf)
+- [準連結的安定核としての次元階層論 (PDF)](paper7_86.pdf)
+- [準連結的幾何と絶対空間論 (PDF)](paper7_87.pdf)
+- [証明多様体の基礎理論（０～３） (PDF)](paper7_88.pdf)
+- [数論的関数について (PDF)](paper7_89.pdf)
+- [絶対空間上の連分数的構造 (PDF)](paper7_90.pdf)
+
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_91.pdf)
