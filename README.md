@@ -56,18 +56,16 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_21.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_22.pdf)
+- [オイラー積の創発と虚数乗法 (PDF)](paper7_21.pdf)
+- [カントール非正則と障害理論 (PDF)](paper7_22.pdf)
+- [グラフ的イデアルと完全数の構造 (PDF)](paper7_23.pdf)
+- [サーストン分類への最小構成 (PDF)](paper7_24.pdf)
+- [スペクトルギャップからのオイラー積 (PDF)](paper7_25.pdf)
+- [スペクトル保存と対称性の顕在化　短報 (PDF)](paper7_26.pdf)
+- [ゼータ構成論における具体的計算例(PDF)](paper7_27.pdf)
+- [ネットワークのフラクタル的発散と生き残り構造 (PDF)](paper7_29.pdf)
+- [フラクタルL 関数とゼロ点構造 (PDF)](paper7_30.pdf)
 
-- [零モード束上の融合代数構造 (PDF)](paper7_23.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_24.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_25.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_26.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_27.pdf)
-
-- [零モード束上の融合代数構造 (PDF)](paper7_29.pdf)
-
-- [零モード束上の融合代数構造 (PDF)](paper7_30.pdf)
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_31.pdf)
