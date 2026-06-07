@@ -81,16 +81,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_41.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_42.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_43.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_44.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_45.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_46.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_47.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_48.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_49.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_50.pdf)
+- [フラクタル非閉包代数構造からのゼータ構造の創発 (PDF)](paper7_41.pdf)
+- [フラクタル微分構造からの導来圏ゼータにおける補遺 (PDF)](paper7_42.pdf)
+- [フラクタル微分構造からの導来圏的ゼータ構成論 (PDF)](paper7_43.pdf)
+- [フラクタル微分構造とゼータ (PDF)](paper7_44.pdf)
+- [フラクタル微分構造の定義（最小版）　短報 (PDF)](paper7_45.pdf)
+- [フラクタル保型空間上のゼータ表現　補足的考察 (PDF)](paper7_46.pdf)
+- [フラクタル保型空間上のゼータ表現 (PDF)](paper7_47.pdf)
+- [フラクタル保型形式について (PDF)](paper7_48.pdf)
+- [フラクタル保型形式論の展開 (PDF)](paper7_49.pdf)
+- [まどろみ存在定理について (PDF)](paper7_50.pdf)
+
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_51.pdf)
