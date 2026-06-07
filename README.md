@@ -211,17 +211,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_141.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_142.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_143.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_144.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_145.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_146.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_147.pdf)
+- [問いJ：積核 f(ij) と非可換性の起源　短報 (PDF)](paper7_141.pdf)
+- [問いR：塔の極限対象は何か　短報(PDF)](paper7_142.pdf)
+- [有限オイラー積から無限積の導出(PDF)](paper7_143.pdf)
+- [踊り場とBSD 構造(PDF)](paper7_144.pdf)
+- [螺旋作用素とD42 (PDF)](paper7_145.pdf)
+- [螺旋作用素による散逸格子構造の解析(PDF)](paper7_146.pdf)
+- [螺旋双曲面上の臨界点(PDF)](paper7_147.pdf)
+- [例外集合の処理(PDF)](paper7_148.pdf)
+- [例外集合の処理（重複？）(PDF)](paper7_149.pdf)
+- [零モード束上の融合代数構造(PDF)](paper7_150.pdf)
 
-- [零モード束上の融合代数構造 (PDF)](paper7_148.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_149.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_150.pdf)
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_151.pdf)
