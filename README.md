@@ -120,17 +120,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_71.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_72.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_73.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_74.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_75.pdf)
+- [準連結安定化理論の公理系 (PDF)](paper7_71.pdf)
+- [準連結空間＝擬距離空間＝フラクタル＝フラクタル微分 (PDF)](paper7_72.pdf)
+- [準連結公理系からの基本定理や基本構造（補遺） (PDF)](paper7_73.pdf)
+- [準連結公理系におけるフラクタル保型空間の構成 (PDF)](paper7_74.pdf)
+- [準連結構造からの複素構造の公理的構成 (PDF)](paper7_75.pdf)
+- [準連結構造と平均化写像 (PDF)](paper7_76.pdf)
+- [準連結構造と忘却基本定理からの物理的安定構造 (PDF)](paper7_77.pdf)
+- [準連結構造におけるIUT構造 (PDF)](paper7_78.pdf)
+- [準連結構造における擬距離とHilbert 構造 (PDF)](paper7_79.pdf)
+- [準連結構造の応用例 (PDF)](paper7_80.pdf)
 
-- [零モード束上の融合代数構造 (PDF)](paper7_76.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_77.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_78.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_79.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_80.pdf)
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_81.pdf)
