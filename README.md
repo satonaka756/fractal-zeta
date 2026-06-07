@@ -283,7 +283,7 @@ Step 6
 - [２－圏フラクタルイデアル理論とランク構造 (PDF)](paper7_154.pdf)
 - [２－圏生成子の理論における、フラクタルイデアル理論 (PDF)](paper7_155.pdf)
 
-[旧サイト]([リンク先のURL](https://github.com/LyndonSpiralMandala/lyndon-spiral-complex-phase?tab=readme-ov-file#-the-theory-of-the-lyndon-spiral-complex-phase))
+[旧サイト]((https://github.com/LyndonSpiralMandala/lyndon-spiral-complex-phase?tab=readme-ov-file#-the-theory-of-the-lyndon-spiral-complex-phase))
 
 ```text
 project/
