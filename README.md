@@ -161,7 +161,7 @@ Step 6
 - [停止定理 (PDF)New](paper7_99.pdf)
 - [停止定理と超微分構造から考える１７閉包構造フラクタル (PDF)New](paper7_100.pdf)
 - [停止定理と停止的幾何 (PDF)New](paper7_101.pdf)
-- [停止定理の修正・補足論文 (PDF)New](paper7_102pdf)
+- [停止定理の修正・補足論文 (PDF)New](paper7_102.pdf)
 - [八元数からの停止定理(PDF)New](paper7_107.pdf)
 - [非可換代数における応答構造 (PDF)New](paper7_126.pdf)
 - [非可換半群の退化filtration と臨界散逸次元 (PDF)New](paper7_127.pdf)
