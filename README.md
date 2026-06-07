@@ -32,6 +32,10 @@
 ```text
 project/
 ├── README.md
+## 主要論文草稿 (Papers)
+
+- [零モード束上の融合代数構造 (PDF)](paper7_1.pdf)
+- [補遺論文 融合代数構造上のオイラー積についての考察 (PDF)](paper7_2.pdf)
 ├── papers/         # 論文草稿
 ├── notes/          # 研究メモ
 ├── tex/            # TeX ソース
