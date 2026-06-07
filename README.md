@@ -27,16 +27,17 @@
 
 ---
 
-- [零モード束上の融合代数構造 (PDF)](paper7_1.pdf)
-- [補遺論文 融合代数構造上のオイラー積についての考察 (PDF)](paper7_2.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_3.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_4.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_5.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_6.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_7.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_8.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_9.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_10.pdf)
+- [２-圏的完全数ゼータ理論 (PDF)](paper7_1.pdf)
+- [１７散逸付き閉包の構成 (PDF)](paper7_2.pdf)
+- [１７閉包の構成 (PDF)](paper7_3.pdf)
+- [A∞(6)=ζ(2)の証明の流れ(コンパイルミス) (PDF)](paper7_4.pdf)
+- [D42 からの保型構造埋め込み構造 (PDF)](paper7_5.pdf)
+- [D42 における素数構造 (PDF)](paper7_6.pdf)
+- [D42 散逸付き閉包理論：構造的整理　短報 (PDF)](paper7_7.pdf)
+- [D42 散逸保型構造の中の虚数乗法構造 (PDF)](paper7_8.pdf)
+- [D42 螺旋作用素理論：数値実験による構造解析　短報 (PDF)](paper7_9.pdf)
+- [D42 理論における臨界指数s=2 と臨界値t=6 の解析 (PDF)](paper7_10.pdf)
+
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_11.pdf)
