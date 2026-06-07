@@ -40,22 +40,25 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_11.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_12.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_13.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_14.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_15.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_16.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_17.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_18.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_19.pdf)
+- [D42 臨界構造の解析 (PDF)](paper7_11.pdf)
+- [D42 Transfer Operator 数値解析サマリー　短報 (PDF)](paper7_12.pdf)
+- [Lie Closure と位相混合定理　短報 (PDF)](paper7_13.pdf)
+- [解析接続と自己参照測度と障害構造 (PDF)](paper7_14.pdf)
+- [n-準連結構造と有限周期から連続unitary 幾何への極限 (PDF)](paper7_15.pdf)
+- [n-準連結構造におけるフラクタル準保型構造理論 (PDF)](paper7_16.pdf)
+- [n-準連結構造における非周期量子保型幾何 (PDF)](paper7_17.pdf)
+- [定理：Transfer Operator の不定符号性　短報 (PDF)](paper7_18.pdf)
+- [USO の理論の応用的入門 (PDF)](paper7_19.pdf)
+- [ウィルソンー圏理論 (PDF)](paper7_20.pdf)
 
 
-- [零モード束上の融合代数構造 (PDF)](paper7_21.pdf)
+
+
 
 ## Repository Structure
+- [零モード束上の融合代数構造 (PDF)](paper7_21.pdf)
 - [零モード束上の融合代数構造 (PDF)](paper7_22.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_20.pdf)
+
 - [零モード束上の融合代数構造 (PDF)](paper7_23.pdf)
 - [零モード束上の融合代数構造 (PDF)](paper7_24.pdf)
 - [零モード束上の融合代数構造 (PDF)](paper7_25.pdf)
