@@ -68,17 +68,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_31.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_32.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_33.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_34.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_35.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_36.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_37.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_38.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_38.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_39.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_40.pdf)
+- [フラクタルＬ関数とコヒーレンス的安定性 (PDF)](paper7_31.pdf)
+- [フラクタルＬ関数と散逸領域 (PDF)](paper7_32.pdf)
+- [フラクタルＬ関数と相転移 (PDF)](paper7_33.pdf)
+- [フラクタルＬ関数の基礎概念 (PDF)](paper7_34.pdf)
+- [フラクタルＬ関数の計算 (PDF)](paper7_35.pdf)
+- [フラクタルカスプと半群的イデアル理論 (PDF)](paper7_36.pdf)
+- [フラクタルカスプ上のフレドホルム行列における臨界線（シリーズ４） (PDF)](paper7_37.pdf)
+- [フラクタル的非閉包代数の理論 (PDF)](paper7_38.pdf)
+- [フラクタル非閉包代数における解析接続構造 (PDF)](paper7_39.pdf)
+- [フラクタル非閉包代数における漏れ構造 (PDF)](paper7_40.pdf)
+
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_41.pdf)
