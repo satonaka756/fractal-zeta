@@ -146,17 +146,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_91.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_92.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_93.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_94.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_95.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_96.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_97.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_98.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_99.pdf)
+- [絶対空間上の連分数的構造と次元階層論の内在的導出 (PDF)](paper7_91.pdf)
+- [素数フラクタルイデアル概念によるゼータの構成理論の概要 (PDF)](paper7_92.pdf)
+- [素数構造への収束性の仮定付き証明 (PDF)](paper7_93.pdf)
+- [多値的ネーター変形と準連結性 (PDF)](paper7_94.pdf)
+- [中心不在性とＲＧ (PDF)](paper7_95.pdf)
+- [超微分定理と１７閉包 (PDF)](paper7_96.pdf)
+- [停止性の計算 (PDF)](paper7_97.pdf)
+- [停止定理(修正つき） (PDF)](paper7_98.pdf)
+- [停止定理 (PDF)](paper7_99.pdf)
+- [停止定理と超微分構造から考える１７閉包構造フラクタル (PDF)](paper7_100.pdf)
 
-- [零モード束上の融合代数構造 (PDF)](paper7_100.pdf)
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_101.pdf)
