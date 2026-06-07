@@ -107,16 +107,17 @@
 
 
 ## Repository Structure
-- [零モード束上の融合代数構造 (PDF)](paper7_61.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_62.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_63.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_64.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_65.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_66.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_67.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_68.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_69.pdf)
-- [零モード束上の融合代数構造 (PDF)](paper7_70.pdf)
+- [簡単な入門としての次元階層論に寄る微分方程式のガロア理論 (PDF)](paper7_61.pdf)
+- [共鳴構造としてのBSD (PDF)](paper7_62.pdf)
+- [混合空間からのオイラー積の創発(PDF)](paper7_63.pdf)
+- [最小発散定理・踊り場・フラクタル・準連結(PDF)](paper7_64.pdf)
+- [三角数・完全数などのグラフイデアル論的解析(PDF)](paper7_65.pdf)
+- [散逸構造の中でのゼロ点構造の計算と分析(PDF)](paper7_66.pdf)
+- [散逸的構造創発の概念系(PDF)](paper7_67.pdf)
+- [散逸的保存の構造(PDF)](paper7_68.pdf)
+- [準周期構造とモジュライ空間(PDF)](paper7_69.pdf)
+- [準不変核と障害理論(PDF)](paper7_70.pdf)
+
 
 ## Repository Structure
 - [零モード束上の融合代数構造 (PDF)](paper7_71.pdf)
