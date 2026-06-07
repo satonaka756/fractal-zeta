@@ -7,6 +7,20 @@
 融合代数からフラクタル非閉包代数の構造を構築し、準連結構造、ゼータ幾何などを行う。
 数値計算をして概念探索してから、理論化している。
 
+## Author
+
+Hiroki Honda
+
+Independent Researcher
+
+Research interests:
+
+- Fractal Structures
+- Zeta Geometry
+- Non-Closure Algebra
+- Automorphic Structures
+- Dynamical Transformation Theory
+
 ## Research Vision
 
 本研究は、
