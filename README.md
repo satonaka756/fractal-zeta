@@ -142,7 +142,7 @@ Step 6
 - [D42 臨界構造の解析 (PDF)New](paper7_11.pdf)
 - [オイラー積の創発と虚数乗法 (PDF)New](paper7_21.pdf)
 - [スペクトルギャップからのオイラー積 (PDF)New](paper7_25.pdf)
-- [ゼータ構成論における具体的計算例(PDF)]New(paper7_27.pdf)
+- [ゼータ構成論における具体的計算例(PDF)New](paper7_27.pdf)
 - [リーマンゼータ関数の零点の構造再帰的干渉導来幾何 (PDF)New](paper7_53.pdf)
 - [散逸構造の中でのゼロ点構造の計算と分析(PDF)New](paper7_66.pdf)
 - [散逸的構造創発の概念系(PDF)New](paper7_67.pdf)
