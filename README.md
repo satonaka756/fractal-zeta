@@ -121,38 +121,41 @@ Step 6
 - [ループ・ツリー・停止核の三分解 (PDF)New](work8_3.pdf)
 - [復元トレース公式 (PDF)New](work8_4.pdf)
 - [ループ・ツリー構造と融合代数 (PDF)New](work8_5.pdf)
-- [検証記録 2026年7月16日 (PDF)New](work8_6.pdf)
-- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現 (PDF)New](work8_7.pdf)
-- [橋本作用素とヴェイユ座標 (PDF)New](work8_8.pdf)
+
+
+- 
 - [対象文書:『ループツリー復元空間の理論』検証 (PDF)New](work8_9.pdf)
 - [ループ・ツリー理論：生成元別 Hashimoto 作用素の曲率構造 (PDF)New](work8_10.pdf)
-
+- [検証記録 2026年7月16日 (PDF)New](work8_6.pdf)
+- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現 (PDF)New](work8_7.pdf)
+- - [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？） (PDF)New](work8_14.pdf)
+  - - [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？２） (PDF)New]
+    - - [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？３） (PDF)New](work8_21.pdf)
+- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？４） (PDF)New](work8_22.pdf)
+- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？５）） (PDF)New](work8_23.pdf)
+ - [復元理論とスペクトル対応・検証報告書 (PDF)New](work8_16.pdf)
+  - [検証ノート：伊原ゼータ・有限グラフによる Loop–Tree 理論の検証 (PDF)New](work8_29.pdf)
+  - - [Loop-Tree理論・準連結空間理論 既存理論対応 検証記録 (PDF)New](work8_31.pdf)
+    - 
 ##フラクタルリフトの簡単な解説
 - [復元構造におけるループツリー混合構造 (PDF)New](work8_11.pdf)
 - [Recovery Bass 圧縮の理論 (PDF)New](work8_12.pdf)
 - [復元理論におけるＬ関数構造の対応分析（復元理論補遺） (PDF)New](work8_13.pdf)
-- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？） (PDF)New](work8_14.pdf)
 - [復元主定理の導出 (PDF)New](work8_15.pdf)
-- [復元理論とスペクトル対応・検証報告書 (PDF)New](work8_16.pdf)
 - [要約　復元理論 (PDF)New](work8_17.pdf)
-- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？２） (PDF)New](work8_18.pdf)
 - [復元理論による退化的対称性　リーマンゼータと伊原ゼータをモデルに (PDF)New](work8_19.pdf)
 - [リーマンゼータの復元理論的構成 (PDF)New](work8_20.pdf)
 
 ##フラクタルリフトの簡単な解説
-- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？３） (PDF)New](work8_21.pdf)
-- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？４） (PDF)New](work8_22.pdf)
-- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現（重複？５）） (PDF)New](work8_23.pdf)
 - [復元理論における停止核 (PDF)New](work8_24.pdf)
 - [ループツリー復元空間の理論 (PDF)New](work8_25.pdf)
 - [停止核についてのコード検証 (PDF)New](work8_26.pdf)
 - [停止核上のフロベニウス (PDF)New](work8_27.pdf)
 - [ループとツリー構造からのフロベニウス (PDF)New](work8_28.pdf)
-- [検証ノート：伊原ゼータ・有限グラフによる Loop–Tree 理論の検証 (PDF)New](work8_29.pdf)
 - [散逸付き１７閉包の停止核理論的数値検証および構造解析 (PDF)New](work8_30.pdf)
 
 ##フラクタルリフトの簡単な解説
-- [Loop-Tree理論・準連結空間理論 既存理論対応 検証記録 (PDF)New](work8_31.pdf)
+
 - [ループツリーの概念と準連結空間 (PDF)New](work8_32.pdf)
 - [ループツリー空間 (PDF)New](work8_33.pdf)
 - [停止ホッジ定理 (PDF)New](work8_34.pdf)
@@ -177,12 +180,13 @@ Step 6
 
 ##フラクタルリフトの簡単な解説
 - [フラクタルリフトと解析接続 (PDF)New](work8_51.pdf)
-- [生き残り幾何学（Survival Geometry） (PDF)New](work8_52.pdf)
-- [停止核局所展開公理系（SK 公理系） (PDF)New](work8_53.pdf)
 - [類双対構造と三点相関構造 (PDF)New](work8_54.pdf)
 - [散逸的ガンマ因子の生成関数の創発 (PDF)New](work8_55.pdf)
-- [ある踊り場 (PDF)New](work8_56.pdf)
-- [フラクタルモチーフの数理哲学的考察 (PDF)New](work8_57.pdf)
+
+
+- [生き残り幾何学（Survival Geometry） (PDF)New](work8_52.pdf)
+- [停止核局所展開公理系（SK 公理系） (PDF)New](work8_53.pdf)
+
 - [臨界線上の測度構造とミルナー構造 (PDF)New](work8_58.pdf)
 - [臨界線上の測度構造とミルナー構造 (PDF)New](work8_59.pdf)
 - [臨界線上の測度構造とミルナー構造 (PDF)New](work8_60.pdf)
@@ -374,6 +378,7 @@ Step 6
 - [絶対空間上の連分数的構造と次元階層論の内在的導出(注釈） (PDF)](paper7_153.pdf)
 - [２－圏フラクタルイデアル理論とランク構造 (PDF)](paper7_154.pdf)
 - [２－圏生成子の理論における、フラクタルイデアル理論 (PDF)](paper7_155.pdf)
+- [ある踊り場 (PDF)New](work8_56.pdf)
 
 [旧サイト](https://github.com/LyndonSpiralMandala/lyndon-spiral-complex-phase?tab=readme-ov-file#-the-theory-of-the-lyndon-spiral-complex-phase)
 
