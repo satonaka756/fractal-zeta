@@ -115,23 +115,19 @@ Step 6
 各論文中の定理・証明を参照してください。
 
 ---
-##フラクタルリフトの簡単な解説
+##コード検証 
+- [停止核についてのコード検証 (PDF)New](work8_26.pdf)
+- [復元理論とスペクトル対応・検証報告書 (PDF)New](work8_16.pdf)
+- [散逸付き１７閉包の停止核理論的数値検証および構造解析 (PDF)New](work8_30.pdf)
+
+##復元理論２
 - [散逸構造的ガンマ因子の正則化 (PDF)New](work8_1.pdf)
 - [停止核検出アルゴリズム (PDF)New](work8_2.pdf)
 - [ループ・ツリー・停止核の三分解 (PDF)New](work8_3.pdf)
 - [復元トレース公式 (PDF)New](work8_4.pdf)
 - [ループ・ツリー構造と融合代数 (PDF)New](work8_5.pdf)
-- 
-##フラクタルリフトの簡単な解説
-- [対象文書:『ループツリー復元空間の理論』検証 (PDF)New](work8_9.pdf)
-- [ループ・ツリー理論：生成元別 Hashimoto 作用素の曲率構造 (PDF)New](work8_10.pdf)
-- [検証記録 2026年7月16日 (PDF)New](work8_6.pdf)
-- [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現 (PDF)New](work8_7.pdf)
- - [復元理論とスペクトル対応・検証報告書 (PDF)New](work8_16.pdf)
-  - [検証ノート：伊原ゼータ・有限グラフによる Loop–Tree 理論の検証 (PDF)New](work8_29.pdf)
-  - - [Loop-Tree理論・準連結空間理論 既存理論対応 検証記録 (PDF)New](work8_31.pdf)
-  
-##フラクタルリフトの簡単な解説
+
+##復元理論１
 - [復元構造におけるループツリー混合構造 (PDF)New](work8_11.pdf)
 - [Recovery Bass 圧縮の理論 (PDF)New](work8_12.pdf)
 - [復元理論におけるＬ関数構造の対応分析（復元理論補遺） (PDF)New](work8_13.pdf)
@@ -140,27 +136,37 @@ Step 6
 - [復元理論による退化的対称性　リーマンゼータと伊原ゼータをモデルに (PDF)New](work8_19.pdf)
 - [リーマンゼータの復元理論的構成 (PDF)New](work8_20.pdf)
 
-##フラクタルリフトの簡単な解説
+##ループ・ツリー構造と復元空間
 - [復元理論における停止核 (PDF)New](work8_24.pdf)
 - [ループツリー復元空間の理論 (PDF)New](work8_25.pdf)
-- [停止核についてのコード検証 (PDF)New](work8_26.pdf)
+-- [対象文書:『ループツリー復元空間の理論』検証 (PDF)New](work8_9.pdf)
+-- [復元理論検証記録 2026年7月16日 (PDF)New](work8_6.pdf)
+
 - [停止核上のフロベニウス (PDF)New](work8_27.pdf)
 - [ループとツリー構造からのフロベニウス (PDF)New](work8_28.pdf)
-- [散逸付き１７閉包の停止核理論的数値検証および構造解析 (PDF)New](work8_30.pdf)
 
-##フラクタルリフトの簡単な解説
-
+##ループ・ツリー構造
 - [ループツリーの概念と準連結空間 (PDF)New](work8_32.pdf)
 - [ループツリー空間 (PDF)New](work8_33.pdf)
 - [停止ホッジ定理 (PDF)New](work8_34.pdf)
-- [ループ・ツリー構造の概念 (PDF)New](work8_35.pdf)
-- [フラクタル停止核束の作用素論――純虚スペクトル性・停止核分解・completed ゼータ構造―― (PDF)New](work8_36.pdf)
+- [ループ・ツリー構造の概念 (PDF)New](work8_35.pdf)	
+- -[ループ・ツリー理論：生成元別 Hashimoto 作用素の曲率構造 (PDF)New](work8_10.pdf)
+- - [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現 (PDF)New](work8_7.pdf)
+
+##短報
+-[検証ノート：伊原ゼータ・有限グラフによる Loop–Tree 理論の検証 (PDF)New](work8_29.pdf)
+- [Loop-Tree理論・準連結空間理論 既存理論対応 検証記録 (PDF)New](work8_31.pdf)
 - [非線形螺旋作用素の概念（復刻） (PDF)New](work8_37.pdf)
-- [停止核スペクトルの検証と純虚スペクトル性 (PDF)New](work8_38.pdf)
+- [生き残り幾何学（Survival Geometry） (PDF)New](work8_52.pdf)
+- [停止核局所展開公理系（SK 公理系） (PDF)New](work8_53.pdf)
 - [非線形螺旋作用素の概念（復刻） (PDF)New](work8_39.pdf)
+
+##純虚スペクトル性についての考察
+- [フラクタル停止核束の作用素論――純虚スペクトル性・停止核分解・completed ゼータ構造―― (PDF)New](work8_36.pdf)
+- [停止核スペクトルの検証と純虚スペクトル性 (PDF)New](work8_38.pdf)
 - [停止幾何学からcompleted 関数の零点スペクトルを構成する理論 (PDF)New](work8_40.pdf)
 
-##フラクタルリフトの簡単な解説
+##フラクタルリフト作用素論の構築
 - [停止核束上のループ・ツリー変換における微分構造 (PDF)New](work8_41.pdf)
 - [Hecke–Mellin 作用素論 (PDF)New](work8_42.pdf)
 - [フラクタル曲率構造の中のヘッケ的対称性 (PDF)New](work8_43.pdf)
@@ -172,14 +178,14 @@ Step 6
 - [フラクタルリフト上の停止核束のリー代数的退化とcompleted zeta 指標 (PDF)New](work8_49.pdf)
 - [フラクタル準連結空間における、ゼロ点・素数構造 (PDF)New](work8_50.pdf)
 
-##フラクタルリフトの簡単な解説
+##フラクタルリフト概念
 - [フラクタルリフトと解析接続 (PDF)New](work8_51.pdf)
 - [類双対構造と三点相関構造 (PDF)New](work8_54.pdf)
 - [散逸的ガンマ因子の生成関数の創発 (PDF)New](work8_55.pdf)
 
 
-- [生き残り幾何学（Survival Geometry） (PDF)New](work8_52.pdf)
-- [停止核局所展開公理系（SK 公理系） (PDF)New](work8_53.pdf)
+
+
 
 - [臨界線上の測度構造とミルナー構造 (PDF)New](work8_58.pdf)
 - [臨界線上の測度構造とミルナー構造 (PDF)New](work8_59.pdf)
