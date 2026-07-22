@@ -1,0 +1,10303 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+"""
+==========================================================
+Loop–Tree Theory Numerical Verification
+Version 2.0
+
+Part 1
+----------------------------------------------------------
+Basic Environment
+Global Parameters
+Numerical Precision
+Common Utilities
+
+Python 3.12
+NumPy 2.x
+SciPy 1.14+
+==========================================================
+"""
+
+#==========================================================
+# Libraries
+#==========================================================
+
+import math
+
+import numpy as np
+
+import matplotlib.pyplot as plt
+
+from dataclasses import dataclass
+from functools import lru_cache
+
+from scipy.integrate import quad
+
+from scipy.special import poch
+from scipy.special import zeta
+
+from scipy.linalg import eig
+from scipy.linalg import expm
+
+#==========================================================
+# Global numerical settings
+#==========================================================
+
+np.set_printoptions(
+    precision=15,
+    suppress=True
+)
+
+#==========================================================
+# Parameters
+#==========================================================
+
+@dataclass
+class Parameters:
+
+    #
+    # expansion order
+    #
+
+    TREE_ORDER : int = 20
+
+    #
+    # completed parameter
+    #
+
+    t : float = 0.35
+
+    #
+    # tree coupling
+    #
+
+    alpha : float = 0.20
+
+    #
+    # loop coupling
+    #
+
+    beta : float = 0.15
+
+    #
+    # numerical tolerance
+    #
+
+    tol : float = 1.0e-8
+
+    #
+    # integration precision
+    #
+
+    epsabs : float = 1.0e-12
+
+    epsrel : float = 1.0e-12
+
+    #
+    # integration limit
+    #
+
+    quad_limit : int = 300
+
+#==========================================================
+# Global parameter object
+#==========================================================
+
+PARAM = Parameters()
+
+#==========================================================
+# Frequently used constants
+#==========================================================
+
+PI = np.pi
+
+I = 1j
+
+#==========================================================
+# Identity matrix
+#==========================================================
+
+def identity(n):
+
+    return np.identity(
+        n,
+        dtype=complex
+    )
+
+#==========================================================
+# Numerical zero test
+#==========================================================
+
+def is_zero(x):
+
+    return abs(x) < PARAM.tol
+
+#==========================================================
+# Safe logarithm
+#==========================================================
+
+def clog(z):
+
+    """
+    Complex logarithm.
+
+    This function is intentionally centralized so that
+    future branch-cut modifications are performed here
+    only once.
+    """
+
+    return np.log(
+        np.complex128(z)
+    )
+
+#==========================================================
+# Cached factorial
+#==========================================================
+
+@lru_cache(maxsize=None)
+
+def factorial(n):
+
+    return math.factorial(n)
+
+#==========================================================
+# Cached Pochhammer
+#==========================================================
+
+@lru_cache(maxsize=None)
+
+def poch_cached(a,n):
+
+    return poch(a,n)
+
+#==========================================================
+# Cached zeta
+#==========================================================
+
+@lru_cache(maxsize=None)
+
+def zeta_cached(s):
+
+    return zeta(s)
+
+#==========================================================
+# Banner
+#==========================================================
+
+def banner(title):
+
+    print()
+
+    print("="*60)
+
+    print(title)
+
+    print("="*60)
+
+#==========================================================
+# Matrix report
+#==========================================================
+
+def matrix_report(name,M):
+
+    banner(name)
+
+    print()
+
+    print("dimension")
+
+    print(M.shape)
+
+    print()
+
+    print("rank")
+
+    print(np.linalg.matrix_rank(M))
+
+    print()
+
+    print("norm")
+
+    print(np.linalg.norm(M))
+
+#==========================================================
+# Eigenvalue report
+#==========================================================
+
+def eigen_report(vals):
+
+    vals=np.real_if_close(vals)
+
+    vals=np.sort(vals)
+
+    print()
+
+    print("minimum")
+
+    print(vals[0])
+
+    print()
+
+    print("maximum")
+
+    print(vals[-1])
+
+    print()
+
+    print("condition")
+
+    if abs(vals[0])>PARAM.tol:
+
+        print(abs(vals[-1])/abs(vals[0]))
+
+    else:
+
+        print("singular")
+
+#==========================================================
+# Initialization
+#==========================================================
+
+banner("Loop–Tree Theory Numerical Verification")
+
+print()
+
+print("Version : 2.0")
+
+print()
+
+print("Tree order :",PARAM.TREE_ORDER)
+
+print("Parameter t :",PARAM.t)
+
+print("Tolerance :",PARAM.tol)
+
+print()
+
+print("Environment initialized.")
+
+#==========================================================
+#
+# Part 2
+#
+# Tree Coefficients
+#
+#==========================================================
+
+banner("Part 2 : Tree Coefficients")
+
+#==========================================================
+# Tree coefficient
+#
+# r_{2k+1}(t)
+#==========================================================
+
+def r_coeff(k,t):
+
+    factorial = math.factorial(2*k+1)
+
+    def integrand(u):
+
+        return (
+            poch(1-u,2*k+1)
+            *
+            zeta(2*k+2-u)
+        )
+
+    value,error = quad(
+        integrand,
+        0.0,
+        t,
+        epsabs=PARAM.epsabs,
+        epsrel=PARAM.epsrel,
+        limit=PARAM.quad_limit
+    )
+
+    return -2.0*value/factorial
+
+
+#==========================================================
+# derivative
+#
+# dr/dt
+#==========================================================
+
+def dr_coeff(k, t):
+
+    factorial = math.factorial(2*k+1)
+
+    a = 1.0 - t
+
+    #
+    # Gamma pole
+    #
+    if abs(a-round(a)) < 1e-12 and a <= 0:
+
+        return 0.0
+
+    value = (
+        -2.0
+        * poch(a, 2*k+1)
+        * zeta(2*k+2-t)
+        / factorial
+    )
+
+    if not np.isfinite(value):
+
+        return 0.0
+
+    return value
+
+
+#==========================================================
+# coefficient cache
+#==========================================================
+
+_TREE_CACHE={}
+
+
+#==========================================================
+# Build coefficients
+#==========================================================
+
+def build_tree_coefficients(t,
+                            order=None):
+
+    if order is None:
+
+        order=PARAM.TREE_ORDER
+
+    key=(float(t),order)
+
+    if key in _TREE_CACHE:
+
+        return _TREE_CACHE[key]
+
+    coeff=np.zeros(order)
+
+    for k in range(order):
+
+        coeff[k]=r_coeff(k,t)
+
+    _TREE_CACHE[key]=coeff
+
+    return coeff
+
+
+#==========================================================
+# derivative cache
+#==========================================================
+
+_DTREE_CACHE={}
+
+
+#==========================================================
+# Build derivative coefficients
+#==========================================================
+
+def build_dr_coefficients(t,
+                          order=None):
+
+    if order is None:
+
+        order=PARAM.TREE_ORDER
+
+    key=(float(t),order)
+
+    if key in _DTREE_CACHE:
+
+        return _DTREE_CACHE[key]
+
+    coeff=np.zeros(order)
+
+    for k in range(order):
+
+        coeff[k]=dr_coeff(k,t)
+
+    _DTREE_CACHE[key]=coeff
+
+    return coeff
+
+
+#==========================================================
+# Print coefficients
+#==========================================================
+
+def print_tree_coefficients(t):
+
+    coeff=build_tree_coefficients(t)
+
+    banner("Tree coefficients")
+
+    print()
+
+    for k,c in enumerate(coeff):
+
+        print(
+            f"r_{2*k+1:2d} = {c:.15e}"
+        )
+
+
+#==========================================================
+# Plot coefficients
+#==========================================================
+
+def plot_tree_coefficients(t):
+
+    coeff=build_tree_coefficients(t)
+
+    plt.figure(figsize=(8,4))
+
+    plt.plot(
+        np.arange(len(coeff)),
+        coeff,
+        "o-"
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("k")
+
+    plt.ylabel(r"$r_{2k+1}$")
+
+    plt.title("Tree coefficients")
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+coeff=build_tree_coefficients(PARAM.t)
+
+print()
+
+print("Number of coefficients")
+
+print(len(coeff))
+
+print()
+
+print("First coefficient")
+
+print(coeff[0])
+
+print()
+
+print("Last coefficient")
+
+print(coeff[-1])
+
+print_tree_coefficients(PARAM.t)
+
+plot_tree_coefficients(PARAM.t)
+
+
+
+
+
+
+#==========================================================
+#
+# Part 3
+#
+# Loop Completed Function (Stable Version)
+#
+#==========================================================
+
+banner("Part 3 : Loop Completed Function")
+
+EPS = 1.0e-12
+EPS_SERIES = 1.0e-8
+
+
+#==========================================================
+# Stable phi(x)
+#
+#      x e^x
+# φ = --------
+#      e^x-1
+#
+#==========================================================
+
+def phi_exprel(x):
+
+    x = np.complex128(x)
+
+    if abs(x) < EPS_SERIES:
+
+        x2 = x*x
+        x4 = x2*x2
+
+        return (
+            1.0
+            + x/2.0
+            + x2/12.0
+            - x4/720.0
+        )
+
+    return x*np.exp(x)/np.expm1(x)
+
+
+#==========================================================
+# Principal Loop Function
+#
+#          (-z)^t-1
+# P(t,z)=------------
+#         z log(-z)
+#
+#==========================================================
+
+def P(t, z):
+
+    z = np.complex128(z)
+
+    L = clog(-z)
+
+    if abs(z) < EPS:
+        raise ValueError("P(t,z): z too close to 0.")
+
+    x = t*L
+
+    numerator = np.expm1(x)
+    denominator = z*L
+
+    if abs(denominator) < EPS:
+        raise ValueError(
+            "P(t,z): evaluation too close to branch point."
+        )
+
+    return numerator/denominator
+
+
+#==========================================================
+# Tree Series
+#
+# R(t,z)
+#
+#==========================================================
+
+def R(t,
+      z,
+      order=None):
+
+    if order is None:
+        order = PARAM.TREE_ORDER
+
+    coeff = build_tree_coefficients(
+        t,
+        order
+    )
+
+    value = 0.0 + 0.0j
+    power = z
+
+    for c in coeff:
+
+        value += c*power
+        power *= z*z
+
+    return value
+
+
+#==========================================================
+# Completed Function
+#
+# F=P exp(R)
+#
+#==========================================================
+
+def Completed(
+        t,
+        z,
+        order=None):
+
+    return (
+        P(t, z)
+        *
+        np.exp(
+            R(
+                t,
+                z,
+                order
+            )
+        )
+    )
+
+
+#==========================================================
+# d(log P)/dz
+#
+#==========================================================
+
+def dlogP_dz(
+        t,
+        z):
+
+    z = np.complex128(z)
+
+    if abs(z) < EPS:
+        raise ValueError(
+            "dlogP_dz: z too close to 0."
+        )
+
+    L = clog(-z)
+
+    if abs(L) < EPS:
+        raise ValueError(
+            "dlogP_dz: too close to branch point z=-1."
+        )
+
+    x = t*L
+
+    phi = phi_exprel(x)
+
+    return (
+
+        phi/(z*L)
+
+        -
+
+        1.0/z
+
+        -
+
+        1.0/(z*L)
+
+    )
+
+
+#==========================================================
+# d(log P)/dt
+#
+#==========================================================
+
+def dlogP_dt(
+        t,
+        z):
+
+    z = np.complex128(z)
+
+    L = clog(-z)
+
+    if abs(t) < EPS:
+        return np.inf
+
+    x = t*L
+
+    phi = phi_exprel(x)
+
+    return phi/t
+
+
+#==========================================================
+# dR/dz
+#
+#==========================================================
+
+def dR_dz(
+        t,
+        z,
+        order=None):
+
+    if order is None:
+        order = PARAM.TREE_ORDER
+
+    coeff = build_tree_coefficients(
+        t,
+        order
+    )
+
+    value = 0.0 + 0.0j
+    power = 1.0 + 0.0j
+
+    for k, c in enumerate(coeff):
+
+        value += (2*k+1)*c*power
+        power *= z*z
+
+    return value
+
+
+#==========================================================
+# dR/dt
+#
+#==========================================================
+
+def dR_dt(
+        t,
+        z,
+        order=None):
+
+    if order is None:
+        order = PARAM.TREE_ORDER
+
+    coeff = build_dr_coefficients(
+        t,
+        order
+    )
+
+    value = 0.0 + 0.0j
+    power = z
+
+    for c in coeff:
+
+        value += c*power
+        power *= z*z
+
+    return value
+
+
+#==========================================================
+# Completed logarithmic derivatives
+#
+#==========================================================
+
+def dlogF_dz(
+        t,
+        z):
+
+    return (
+
+        dlogP_dz(t, z)
+
+        +
+
+        dR_dz(t, z)
+
+    )
+
+
+def dlogF_dt(
+        t,
+        z):
+
+    return (
+
+        dlogP_dt(t, z)
+
+        +
+
+        dR_dt(t, z)
+
+    )
+
+
+#==========================================================
+# Evaluation
+#
+#==========================================================
+
+def evaluate_completed(
+        t,
+        z):
+
+    banner("Completed Function")
+
+    print()
+    print("z =", z)
+
+    print()
+    print("P(z)")
+    print(P(t, z))
+
+    print()
+    print("R(z)")
+    print(R(t, z))
+
+    print()
+    print("Completed")
+    print(Completed(t, z))
+
+    print()
+    print("dlogF/dz")
+    print(dlogF_dz(t, z))
+
+    print()
+    print("dlogF/dt")
+    print(dlogF_dt(t, z))
+
+
+#==========================================================
+# Sample evaluation
+#
+#==========================================================
+
+z0 = 0.2 + 0.1j
+
+evaluate_completed(
+    PARAM.t,
+    z0
+)
+
+#==========================================================
+#
+# Part 4
+#
+# Connection and Curvature
+#
+#==========================================================
+
+banner("Part 4 : Connection and Curvature")
+
+#==========================================================
+# Connection
+#
+# ω = d log(F)
+#==========================================================
+
+def omega_z(t,z):
+
+    return dlogF_dz(t,z)
+
+
+def omega_t(t,z):
+
+    return dlogF_dt(t,z)
+
+# NOTE:
+# This computes numerical consistency of
+# mixed partial derivatives only.
+# It is not a nontrivial curvature test.
+
+#==========================================================
+# Numerical derivatives
+#==========================================================
+
+def partial_z(func,
+              t,
+              z,
+              h=1e-6):
+
+    return (
+
+        func(t,z+h)
+
+        -
+
+        func(t,z-h)
+
+    )/(2*h)
+
+
+def partial_t(func,
+              t,
+              z,
+              h=1e-6):
+
+    return (
+
+        func(t+h,z)
+
+        -
+
+        func(t-h,z)
+
+    )/(2*h)
+
+
+#==========================================================
+# Curvature
+#
+# Ω=dω
+#
+#==========================================================
+
+def curvature(t,
+              z):
+
+    return (
+
+        partial_z(
+            omega_t,
+            t,
+            z
+        )
+
+        -
+
+        partial_t(
+            omega_z,
+            t,
+            z
+        )
+
+    )
+
+
+#==========================================================
+# Curvature norm
+#==========================================================
+
+def curvature_norm(t,z):
+
+    return abs(
+        curvature(
+            t,
+            z
+        )
+    )
+
+
+#==========================================================
+# Flatness test
+#==========================================================
+
+def flatness_test(t):
+
+    banner("Flatness Test")
+
+    points=[
+
+        0.20+0.10j,
+
+        0.30+0.20j,
+
+        0.40+0.15j,
+
+        0.50+0.10j,
+
+        0.60+0.20j
+
+    ]
+
+    maximum=0.0
+
+    for z in points:
+
+        K=curvature(t,z)
+
+        n=abs(K)
+
+        maximum=max(
+            maximum,
+            n
+        )
+
+        print()
+
+        print("z =",z)
+
+        print("Curvature =",K)
+
+        print("|Ω| =",n)
+
+    print()
+
+    print("Maximum curvature")
+
+    print(maximum)
+
+
+#==========================================================
+# Heat map
+#==========================================================
+
+def curvature_heatmap(
+        t,
+        N=80):
+
+    x=np.linspace(
+        0.10,
+        0.80,
+        N
+    )
+
+    y=np.linspace(
+        -0.40,
+        0.40,
+        N
+    )
+
+    K=np.zeros(
+        (N,N)
+    )
+
+    for i,xx in enumerate(x):
+
+        for j,yy in enumerate(y):
+
+            z=xx+1j*yy
+
+            K[j,i]=curvature_norm(
+                t,
+                z
+            )
+
+    plt.figure(figsize=(7,6))
+
+    plt.imshow(
+
+        K,
+
+        origin="lower",
+
+        extent=[
+            0.1,
+            0.8,
+            -0.4,
+            0.4
+        ],
+
+        aspect="auto"
+
+    )
+
+    plt.colorbar(
+        label="|Ω|"
+    )
+
+    plt.xlabel("Re(z)")
+
+    plt.ylabel("Im(z)")
+
+    plt.title("Curvature")
+
+    plt.show()
+
+
+#==========================================================
+# Sample
+#==========================================================
+
+print()
+
+print("ω_z")
+
+print(
+    omega_z(
+        PARAM.t,
+        z0
+    )
+)
+
+print()
+
+print("ω_t")
+
+print(
+    omega_t(
+        PARAM.t,
+        z0
+    )
+)
+
+flatness_test(
+    PARAM.t
+)
+
+curvature_heatmap(
+    PARAM.t
+)
+
+#==========================================================
+#
+# Part 5
+#
+# Loop Geometry
+#
+#==========================================================
+
+banner("Part 5 : Loop Geometry")
+
+#==========================================================
+# Circular loop
+#==========================================================
+
+def circle_loop(center=-1.0,
+                radius=1.0e-4,
+                points=4000):
+
+    theta=np.linspace(
+        0.0,
+        2.0*np.pi,
+        points,
+        endpoint=True
+    )
+
+    z=center+radius*np.exp(1j*theta)
+
+    return theta,z
+
+
+#==========================================================
+# Line integral
+#==========================================================
+
+def line_integral(path,
+                  t):
+
+    integral=0.0+0.0j
+
+    for i in range(len(path)-1):
+
+        dz=path[i+1]-path[i]
+
+        integral+=omega_z(
+            t,
+            path[i]
+        )*dz
+
+    return integral
+
+
+#==========================================================
+# Loop integral
+#==========================================================
+
+def loop_integral(
+        t,
+        center=-1.0,
+        radius=1e-4,
+        points=4000):
+
+    _,path=circle_loop(
+        center=center,
+        radius=radius,
+        points=points
+    )
+
+    return line_integral(
+        path,
+        t
+    )
+
+
+#==========================================================
+# Holonomy
+#==========================================================
+
+def holonomy(
+        t,
+        center=-1.0,
+        radius=1e-4,
+        points=4000):
+
+    I=loop_integral(
+        t,
+        center=center,
+        radius=radius,
+        points=points
+    )
+
+    return np.exp(I)
+
+
+#==========================================================
+# Holonomy report
+#==========================================================
+
+def holonomy_report(
+        t,
+        center=-1.0):
+
+    banner("Holonomy")
+
+    I=loop_integral(
+        t,
+        center=center
+    )
+
+    H=np.exp(I)
+
+    print()
+
+    print("Loop Integral")
+
+    print(I)
+
+    print()
+
+    print("Holonomy")
+
+    print(H)
+
+    print()
+
+    print("|Holonomy|")
+
+    print(abs(H))
+
+    print()
+
+    print("Phase")
+
+    print(np.angle(H))
+
+
+#==========================================================
+# Loop figure
+#==========================================================
+
+def plot_loop(
+        center=-1.0,
+        radius=1e-4):
+
+    _,z=circle_loop(
+        center=center,
+        radius=radius
+    )
+
+    plt.figure(figsize=(6,6))
+
+    plt.plot(
+        z.real,
+        z.imag
+    )
+
+    plt.scatter(
+        [center],
+        [0],
+        s=80,
+        c="red"
+    )
+
+    plt.axis("equal")
+
+    plt.grid(True)
+
+    plt.xlabel("Re(z)")
+
+    plt.ylabel("Im(z)")
+
+    plt.title("Branch Loop")
+
+    plt.show()
+
+
+#==========================================================
+# Holonomy along parameter
+#==========================================================
+
+def holonomy_scan(
+        tmin=-1.0,
+        tmax=1.0,
+        samples=101):
+
+    banner("Holonomy Scan")
+
+    ts=np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    modulus=[]
+    phase=[]
+
+    for tt in ts:
+
+        H=holonomy(tt)
+
+        modulus.append(abs(H))
+
+        phase.append(np.angle(H))
+
+    plt.figure(figsize=(8,4))
+
+    plt.plot(
+        ts,
+        modulus,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("t")
+
+    plt.ylabel("|Holonomy|")
+
+    plt.title("Holonomy Norm")
+
+    plt.show()
+
+    plt.figure(figsize=(8,4))
+
+    plt.plot(
+        ts,
+        phase,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("t")
+
+    plt.ylabel("Phase")
+
+    plt.title("Holonomy Phase")
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+holonomy_report(
+    PARAM.t
+)
+
+plot_loop()
+
+holonomy_scan()
+
+#==========================================================
+#
+# Part 6
+#
+# Loop Operator
+#
+#==========================================================
+
+banner("Part 6 : Loop Operator")
+
+#==========================================================
+# Canonical skew generator
+#==========================================================
+
+def build_loop_generator(
+        order=None,
+        beta=None):
+
+    if order is None:
+
+        order=PARAM.TREE_ORDER
+
+    if beta is None:
+
+        beta=PARAM.beta
+
+    G=np.zeros(
+        (order,order)
+    )
+
+    #
+    # nearest neighbour
+    #
+
+    for k in range(order-1):
+
+        c=beta*np.sqrt(k+1)
+
+        G[k,k+1]= c
+
+        G[k+1,k]=-c
+
+    return G
+
+
+#==========================================================
+# Loop operator
+#
+# M = H exp(G)
+#==========================================================
+
+def build_loop_operator(
+        t,
+        order=None):
+
+    if order is None:
+
+        order=PARAM.TREE_ORDER
+
+    H=holonomy(t)
+
+    G=build_loop_generator(
+        order
+    )
+
+    M=H*expm(G)
+
+    return M,G
+
+
+#==========================================================
+# Unitary error
+#==========================================================
+
+def unitary_error(M):
+
+    I=identity(
+        M.shape[0]
+    )
+
+    return np.linalg.norm(
+
+        M.conjugate().T
+
+        @
+
+        M
+
+        -
+
+        I
+
+    )
+
+
+#==========================================================
+# Spectrum report
+#==========================================================
+
+def loop_report(t):
+
+    banner("Loop Operator")
+
+    M,G=build_loop_operator(t)
+
+    vals,_=eig(M)
+
+    print()
+
+    print("Generator norm")
+
+    print(
+        np.linalg.norm(G)
+    )
+
+    print()
+
+    print("Generator rank")
+
+    print(
+        np.linalg.matrix_rank(G)
+    )
+
+    print()
+
+    print("Unitary error")
+
+    print(
+        unitary_error(M)
+    )
+
+    print()
+
+    print("Trace")
+
+    print(
+        np.trace(M)
+    )
+
+    print()
+
+    print("Determinant")
+
+    print(
+        np.linalg.det(M)
+    )
+
+    print()
+
+    print("Eigenvalues")
+
+    for v in vals:
+
+        print(v)
+
+    return M,G,vals
+
+
+#==========================================================
+# Eigenvalue plot
+#==========================================================
+
+def plot_loop_spectrum(M):
+
+    vals=np.linalg.eigvals(M)
+
+    th=np.linspace(
+        0,
+        2*np.pi,
+        500
+    )
+
+    plt.figure(figsize=(6,6))
+
+    plt.scatter(
+        vals.real,
+        vals.imag,
+        s=40
+    )
+
+    plt.plot(
+        np.cos(th),
+        np.sin(th),
+        "--"
+    )
+
+    plt.axis("equal")
+
+    plt.grid(True)
+
+    plt.xlabel("Re")
+
+    plt.ylabel("Im")
+
+    plt.title("Loop Operator Spectrum")
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+M,G,vals=loop_report(
+    PARAM.t
+)
+
+plot_loop_spectrum(M)
+
+#==========================================================
+#
+# Part 7
+#
+# Stopping Operator
+#
+#==========================================================
+
+banner("Part 7 : Stopping Operator")
+
+
+#==========================================================
+# Tree operator
+#==========================================================
+
+def build_tree_operator(
+        t,
+        order=None,
+        alpha=None):
+
+    if order is None:
+        order = PARAM.TREE_ORDER
+
+    if alpha is None:
+        alpha = PARAM.alpha
+
+    d = build_dr_coefficients(
+        t,
+        order
+    )
+
+    L = np.zeros(
+        (order, order),
+        dtype=float
+    )
+
+    #
+    # diagonal
+    #
+
+    for k in range(order):
+        L[k, k] = -d[k]
+
+    #
+    # nearest neighbour coupling
+    #
+
+    for k in range(order - 1):
+
+        c = alpha*np.sqrt(k + 1)
+
+        L[k, k + 1] = c
+        L[k + 1, k] = c
+
+    return L
+
+
+#==========================================================
+# Stopping operator
+#
+# shift=None
+#     -> no artificial kernel
+#
+# shift=value
+#     -> L - shift I
+#
+#==========================================================
+
+def build_stopping_operator(
+        t,
+        order=None,
+        shift=None):
+
+    L = build_tree_operator(
+        t,
+        order
+    )
+
+    if shift is None:
+        shift = 0.0
+
+    Lstop = (
+        L
+        -
+        shift*np.identity(
+            L.shape[0]
+        )
+    )
+
+    return Lstop
+
+
+#==========================================================
+# Optional:
+# produce a kernel intentionally
+#==========================================================
+
+def shift_to_ground_state(
+        L):
+
+    vals = np.linalg.eigvalsh(L)
+
+    lam = np.min(vals)
+
+    Lstop = (
+        L
+        -
+        lam*np.identity(
+            L.shape[0]
+        )
+    )
+
+    return Lstop, lam
+
+
+#==========================================================
+# Kernel dimension
+#==========================================================
+
+def kernel_dimension(
+        L):
+
+    vals = np.linalg.eigvalsh(L)
+
+    return int(
+        np.sum(
+            np.abs(vals)
+            <
+            PARAM.tol
+        )
+    )
+
+
+#==========================================================
+# Spectral gap
+#==========================================================
+
+def spectral_gap(
+        L):
+
+    vals = np.linalg.eigvalsh(L)
+
+    vals = np.sort(vals)
+
+    nz = vals[
+        np.abs(vals)
+        >
+        PARAM.tol
+    ]
+
+    if len(nz) == 0:
+        return 0.0
+
+    return np.min(
+        np.abs(nz)
+    )
+
+
+#==========================================================
+# Kernel projector
+#==========================================================
+
+def kernel_projector(
+        L):
+
+    vals, vecs = np.linalg.eigh(L)
+
+    P = np.zeros_like(
+        L,
+        dtype=float
+    )
+
+    for i, v in enumerate(vals):
+
+        if abs(v) < PARAM.tol:
+
+            u = vecs[:, i]
+
+            P += np.outer(
+                u,
+                u
+            )
+
+    return P
+
+
+#==========================================================
+# Moore-Penrose inverse
+#==========================================================
+
+def stopping_pinv(
+        L):
+
+    vals, vecs = np.linalg.eigh(L)
+
+    Pinv = np.zeros_like(
+        L,
+        dtype=float
+    )
+
+    for i, v in enumerate(vals):
+
+        if abs(v) > PARAM.tol:
+
+            u = vecs[:, i]
+
+            Pinv += (
+                1.0/v
+            ) * np.outer(
+                u,
+                u
+            )
+
+    return Pinv
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def stopping_report(
+        t):
+
+    banner(
+        "Stopping Operator"
+    )
+
+    #
+    # raw tree operator
+    #
+
+    L = build_tree_operator(
+        t
+    )
+
+    vals = np.linalg.eigvalsh(
+        L
+    )
+
+    print()
+    print("Ground eigenvalue")
+    print(np.min(vals))
+
+    print()
+    print("Kernel dimension")
+    print(
+        kernel_dimension(
+            L
+        )
+    )
+
+    print()
+    print("Spectral gap")
+    print(
+        spectral_gap(
+            L
+        )
+    )
+
+    print()
+    print("Operator norm")
+    print(
+        np.linalg.norm(
+            L
+        )
+    )
+
+    print()
+    print("Trace")
+    print(
+        np.trace(
+            L
+        )
+    )
+
+    P = kernel_projector(
+        L
+    )
+
+    print()
+    print("Projector rank")
+    print(
+        np.linalg.matrix_rank(
+            P
+        )
+    )
+
+    Pinv = stopping_pinv(
+        L
+    )
+
+    print()
+    print("Pseudo inverse norm")
+    print(
+        np.linalg.norm(
+            Pinv
+        )
+    )
+
+    return L, P, Pinv
+
+
+#==========================================================
+# Spectrum
+#==========================================================
+
+def plot_stopping_spectrum(
+        L):
+
+    vals = np.linalg.eigvalsh(
+        L
+    )
+
+    plt.figure(
+        figsize=(8, 4)
+    )
+
+    plt.plot(
+        vals,
+        "o"
+    )
+
+    plt.grid(True)
+
+    plt.xlabel(
+        "Index"
+    )
+
+    plt.ylabel(
+        "Eigenvalue"
+    )
+
+    plt.title(
+        "Stopping Spectrum"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+L, P, Pinv = stopping_report(
+    PARAM.t
+)
+
+plot_stopping_spectrum(
+    L
+)
+
+#==========================================================
+#
+# Part 8
+#
+# Loop–Tree Interaction
+#
+#==========================================================
+
+banner("Part 8 : Loop–Tree Interaction")
+
+
+#==========================================================
+# Commutator
+#==========================================================
+
+def commutator(A, B):
+
+    return A @ B - B @ A
+
+
+#==========================================================
+# Conjugation
+#==========================================================
+
+def conjugate(M, A):
+
+    return M.conjugate().T @ A @ M
+
+
+#==========================================================
+# Kernel preservation
+#==========================================================
+
+def kernel_preservation(L, M):
+
+    P = kernel_projector(L)
+
+    P2 = conjugate(M, P)
+
+    return np.linalg.norm(P - P2)
+
+
+#==========================================================
+# Operator preservation
+#==========================================================
+
+def operator_preservation(L, M):
+
+    L2 = conjugate(M, L)
+
+    return np.linalg.norm(L - L2)
+
+
+#==========================================================
+# Interaction report
+#==========================================================
+
+def interaction_report(t):
+
+    banner("Loop–Tree Interaction")
+
+    #
+    # operators
+    #
+
+    Lstop = build_stopping_operator(t)
+
+    M, G = build_loop_operator(t)
+
+    #
+    # commutator
+    #
+
+    C = commutator(
+        Lstop,
+        M
+    )
+
+    print()
+    print("Commutator norm")
+    print(np.linalg.norm(C))
+
+    print()
+    print("Relative commutator")
+
+    denom = (
+        np.linalg.norm(Lstop)
+        *
+        np.linalg.norm(M)
+    )
+
+    if denom > PARAM.tol:
+        rel = (
+            np.linalg.norm(C)
+            /
+            denom
+        )
+    else:
+        rel = 0.0
+
+    print(rel)
+
+    print()
+    print("Kernel preservation")
+    print(
+        kernel_preservation(
+            Lstop,
+            M
+        )
+    )
+
+    print()
+    print("Operator preservation")
+    print(
+        operator_preservation(
+            Lstop,
+            M
+        )
+    )
+
+    print()
+    print("Generator norm")
+    print(
+        np.linalg.norm(G)
+    )
+
+    return C
+
+
+#==========================================================
+# Commutator scan
+#==========================================================
+
+def commutator_scan(
+
+        tmin=-2.0,
+        tmax=2.0,
+        samples=101):
+
+    banner("Interaction Scan")
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    values = []
+
+    for tt in ts:
+
+        Lstop = build_stopping_operator(
+            tt
+        )
+
+        M, _ = build_loop_operator(
+            tt
+        )
+
+        C = commutator(
+            Lstop,
+            M
+        )
+
+        values.append(
+            np.linalg.norm(C)
+        )
+
+    plt.figure(
+        figsize=(8, 4)
+    )
+
+    plt.plot(
+        ts,
+        values,
+        linewidth=2
+    )
+
+    plt.grid(True)
+    plt.xlabel("t")
+    plt.ylabel("||[L,M]||")
+    plt.title("Loop–Tree Interaction")
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+C = interaction_report(
+    PARAM.t
+)
+
+commutator_scan()
+
+#==========================================================
+#
+# Part 9
+#
+# Connection Matrix
+#
+#==========================================================
+
+banner("Part 9 : Connection Matrix")
+
+
+#==========================================================
+# Canonical Connection
+#==========================================================
+
+def build_connection_matrix(
+        t,
+        order=None):
+
+    if order is None:
+        order = PARAM.TREE_ORDER
+
+    _, G = build_loop_operator(
+        t,
+        order
+    )
+
+    return G
+
+
+#==========================================================
+# Corrected stopping operator
+#==========================================================
+
+def corrected_operator(
+        t,
+        gamma=0.10):
+
+    Lstop = build_stopping_operator(
+        t
+    )
+
+    Gamma = build_connection_matrix(
+        t
+    )
+
+    Lcorr = (
+        Lstop
+        +
+        gamma*Gamma
+    )
+
+    return Lcorr, Gamma
+
+
+#==========================================================
+# Compatibility
+#==========================================================
+
+def compatibility_measure(
+        L,
+        Gamma):
+
+    C = commutator(
+        L,
+        Gamma
+    )
+
+    return np.linalg.norm(C)
+
+
+#==========================================================
+# Algebraic curvature candidate
+#==========================================================
+
+def algebraic_curvature(
+        Gamma):
+
+    return Gamma @ Gamma
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def connection_report(
+        t):
+
+    banner(
+        "Connection Matrix"
+    )
+
+    Lcorr, Gamma = corrected_operator(
+        t
+    )
+
+    print()
+    print("Gamma norm")
+    print(
+        np.linalg.norm(
+            Gamma
+        )
+    )
+
+    print()
+    print("Gamma rank")
+    print(
+        np.linalg.matrix_rank(
+            Gamma
+        )
+    )
+
+    print()
+    print("Compatibility")
+    print(
+        compatibility_measure(
+            Lcorr,
+            Gamma
+        )
+    )
+
+    print()
+    print("Corrected norm")
+    print(
+        np.linalg.norm(
+            Lcorr
+        )
+    )
+
+    F = algebraic_curvature(
+        Gamma
+    )
+
+    print()
+    print("Curvature norm")
+    print(
+        np.linalg.norm(F)
+    )
+
+    vals = np.linalg.eigvals(
+        Gamma
+    )
+
+    print()
+    print("Connection eigenvalues")
+
+    for v in vals:
+        print(v)
+
+    return Lcorr, Gamma, F
+
+
+#==========================================================
+# Plot spectrum
+#==========================================================
+
+def plot_connection(
+        Gamma):
+
+    vals = np.linalg.eigvals(
+        Gamma
+    )
+
+    plt.figure(
+        figsize=(6, 6)
+    )
+
+    plt.scatter(
+        vals.real,
+        vals.imag,
+        s=40
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("Re")
+    plt.ylabel("Im")
+    plt.title(
+        "Connection Spectrum"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Compatibility scan
+#==========================================================
+
+def compatibility_scan(
+
+        tmin=-2,
+        tmax=2,
+        samples=101):
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    values = []
+
+    for tt in ts:
+
+        Lcorr, Gamma = corrected_operator(
+            tt
+        )
+
+        values.append(
+            compatibility_measure(
+                Lcorr,
+                Gamma
+            )
+        )
+
+    plt.figure(
+        figsize=(8, 4)
+    )
+
+    plt.plot(
+        ts,
+        values,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("t")
+    plt.ylabel("||[L,Γ]||")
+    plt.title(
+        "Connection Compatibility"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+Lcorr, Gamma, F = connection_report(
+    PARAM.t
+)
+
+plot_connection(
+    Gamma
+)
+
+compatibility_scan()
+
+
+#==========================================================
+#
+# Part10
+#
+# Loop–Tree Curvature
+#
+#==========================================================
+
+banner("Part10 : Loop–Tree Curvature")
+
+
+#==========================================================
+# Curvature
+#
+# K = [L, Gamma]
+#==========================================================
+
+def loop_tree_curvature(
+        t):
+
+    Lstop = build_stopping_operator(
+        t
+    )
+
+    Gamma = build_connection_matrix(
+        t
+    )
+
+    return commutator(
+        Lstop,
+        Gamma
+    )
+
+
+#==========================================================
+# Curvature energy
+#==========================================================
+
+def curvature_energy(K):
+
+    return np.trace(
+        K.T.conjugate() @ K
+    ).real
+
+
+#==========================================================
+# Frobenius norm
+#==========================================================
+
+def curvature_norm(K):
+
+    return np.linalg.norm(K)
+
+
+#==========================================================
+# Spectral radius
+#==========================================================
+
+def curvature_radius(K):
+
+    vals = np.linalg.eigvals(K)
+
+    if len(vals) == 0:
+        return 0.0
+
+    return np.max(
+        np.abs(vals)
+    )
+
+
+#==========================================================
+# Rank
+#==========================================================
+
+def curvature_rank(K):
+
+    return np.linalg.matrix_rank(K)
+
+
+#==========================================================
+# Bianchi defect
+#==========================================================
+
+def bianchi_defect(
+        L,
+        G):
+
+    C1 = commutator(
+        L,
+        commutator(G, G)
+    )
+
+    C2 = commutator(
+        G,
+        commutator(G, L)
+    )
+
+    C3 = commutator(
+        G,
+        commutator(L, G)
+    )
+
+    return np.linalg.norm(
+        C1 + C2 + C3
+    )
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def curvature_report(
+        t):
+
+    banner(
+        "Loop–Tree Curvature"
+    )
+
+    Lstop = build_stopping_operator(
+        t
+    )
+
+    Gamma = build_connection_matrix(
+        t
+    )
+
+    K = commutator(
+        Lstop,
+        Gamma
+    )
+
+    print()
+    print("Curvature norm")
+    print(
+        curvature_norm(K)
+    )
+
+    print()
+    print("Curvature energy")
+    print(
+        curvature_energy(K)
+    )
+
+    print()
+    print("Curvature rank")
+    print(
+        curvature_rank(K)
+    )
+
+    print()
+    print("Spectral radius")
+    print(
+        curvature_radius(K)
+    )
+
+    print()
+    print("Bianchi defect")
+    print(
+        bianchi_defect(
+            Lstop,
+            Gamma
+        )
+    )
+
+    return K
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def curvature_scan(
+        tmin=-1.2,
+        tmax=0.2,
+        samples=81):
+
+    banner(
+        "Curvature Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    values = []
+
+    for tt in ts:
+
+        try:
+
+            K = loop_tree_curvature(
+                tt
+            )
+
+            values.append(
+                curvature_norm(K)
+            )
+
+        except Exception:
+
+            values.append(
+                np.nan
+            )
+
+    plt.figure(
+        figsize=(8, 4)
+    )
+
+    plt.plot(
+        ts,
+        values,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("t")
+    plt.ylabel("||K||")
+    plt.title(
+        "Loop–Tree Curvature"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Eigenvalue plot
+#==========================================================
+
+def plot_curvature(K):
+
+    vals = np.linalg.eigvals(
+        K
+    )
+
+    plt.figure(
+        figsize=(6, 6)
+    )
+
+    plt.scatter(
+        vals.real,
+        vals.imag,
+        s=40
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("Re")
+    plt.ylabel("Im")
+    plt.title(
+        "Curvature Spectrum"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+K = curvature_report(
+    PARAM.t
+)
+
+plot_curvature(
+    K
+)
+
+curvature_scan()
+
+
+
+#==========================================================
+#
+# Part11
+#
+# Non-Abelian Loop–Tree Gauge Connection
+#
+#==========================================================
+
+#==========================================================
+# Renormalized d(log F)/dt
+#
+# remove pure gauge singularity 1/t
+#==========================================================
+
+def dlogF_dt_ren(
+        t,
+        z):
+
+    wt = dlogF_dt(
+        t,
+        z
+    )
+
+    if abs(t) < PARAM.tol:
+
+        #
+        # finite part
+        #
+        L = clog(-z)
+
+        return 0.5*L
+
+    return wt - 1.0/t
+
+banner(
+    "Part11 : Non-Abelian Loop–Tree Gauge Connection"
+)
+
+
+#==========================================================
+# Gauge connection
+#
+# A = Az dz + At dt
+#
+# Az = wz I + alpha Gamma
+# At = wt I + beta L
+#==========================================================
+
+def build_gauge_connection(
+        t,
+        z,
+        alpha=1.0,
+        beta=1.0):
+
+    wz = dlogF_dz(
+        t,
+        z
+    )
+
+    wt = dlogF_dt_ren(
+        t,
+        z
+    )
+
+    Gamma = build_connection_matrix(
+        t
+    )
+
+    L = build_stopping_operator(
+        t
+    )
+
+    n = L.shape[0]
+
+    I = np.identity(
+        n,
+        dtype=complex
+    )
+
+    Az = (
+        wz*I
+        +
+        alpha*Gamma
+    )
+
+    At = (
+        wt*I
+        +
+        beta*L
+    )
+
+    return Az, At, L, Gamma
+
+
+#==========================================================
+# Gauge curvature
+#
+# F = alpha beta [Gamma,L]
+#==========================================================
+
+def gauge_curvature(
+        t,
+        z,
+        alpha=1.0,
+        beta=1.0):
+
+    Gamma = build_connection_matrix(
+        t
+    )
+
+    L = build_stopping_operator(
+        t
+    )
+
+    return (
+        alpha
+        *
+        beta
+        *
+        commutator(
+            Gamma,
+            L
+        )
+    )
+
+
+#==========================================================
+# Curvature norm
+#==========================================================
+
+def gauge_curvature_norm(
+        F):
+
+    return np.linalg.norm(
+        F
+    )
+
+
+#==========================================================
+# Curvature energy
+#==========================================================
+
+def gauge_curvature_energy(
+        F):
+
+    return np.trace(
+        F.conjugate().T @ F
+    ).real
+
+
+#==========================================================
+# Curvature rank
+#==========================================================
+
+def gauge_curvature_rank(
+        F):
+
+    return np.linalg.matrix_rank(
+        F
+    )
+
+
+#==========================================================
+# Curvature radius
+#==========================================================
+
+def gauge_curvature_radius(
+        F):
+
+    vals = np.linalg.eigvals(
+        F
+    )
+
+    if len(vals) == 0:
+        return 0.0
+
+    return np.max(
+        np.abs(vals)
+    )
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def gauge_connection_report(
+        t,
+        z,
+        alpha=1.0,
+        beta=1.0):
+
+    banner(
+        "Gauge Connection"
+    )
+
+    Az, At, L, Gamma = (
+        build_gauge_connection(
+            t,
+            z,
+            alpha,
+            beta
+        )
+    )
+
+    F = commutator(
+        Az,
+        At
+    )
+
+    print()
+    print("||Az||")
+    print(
+        np.linalg.norm(Az)
+    )
+
+    print()
+    print("||At||")
+    print(
+        np.linalg.norm(At)
+    )
+
+    print()
+    print("Curvature norm")
+    print(
+        gauge_curvature_norm(
+            F
+        )
+    )
+
+    print()
+    print("Curvature energy")
+    print(
+        gauge_curvature_energy(
+            F
+        )
+    )
+
+    print()
+    print("Curvature rank")
+    print(
+        gauge_curvature_rank(
+            F
+        )
+    )
+
+    print()
+    print("Spectral radius")
+    print(
+        gauge_curvature_radius(
+            F
+        )
+    )
+
+    return Az, At, F
+
+
+#==========================================================
+# Curvature spectrum
+#==========================================================
+
+def plot_gauge_curvature(
+        F):
+
+    vals = np.linalg.eigvals(
+        F
+    )
+
+    plt.figure(
+        figsize=(6,6)
+    )
+
+    plt.scatter(
+        vals.real,
+        vals.imag,
+        s=40
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("Re")
+    plt.ylabel("Im")
+
+    plt.title(
+        "Gauge Curvature Spectrum"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def gauge_curvature_scan(
+        z,
+        tmin=-2.0,
+        tmax=2.0,
+        samples=101):
+
+    banner(
+        "Gauge Curvature Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    values = []
+
+    for tt in ts:
+
+        try:
+
+            #
+            # t=0 singularity
+            #
+            if abs(tt) < PARAM.tol:
+
+                values.append(
+                    np.nan
+                )
+
+                continue
+
+            F = gauge_curvature(
+                tt,
+                z
+            )
+
+            values.append(
+                gauge_curvature_norm(
+                    F
+                )
+            )
+
+        except Exception:
+
+            values.append(
+                np.nan
+            )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        values,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("t")
+    plt.ylabel("||F||")
+
+    plt.title(
+        "Gauge Curvature"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+Az, At, F = gauge_connection_report(
+    PARAM.t,
+    z0
+)
+
+plot_gauge_curvature(
+    F
+)
+
+gauge_curvature_scan(
+    z0
+)
+
+print()
+print("Curvature kernel dimension")
+
+vals = np.linalg.eigvalsh(
+    F.conjugate().T @ F
+)
+
+print(
+    np.sum(
+        vals < PARAM.tol
+    )
+)
+
+#==========================================================
+#
+# Part12
+#
+# Stopping Kernel and Curvature Coupling
+#
+#==========================================================
+
+banner(
+    "Part12 : Stopping Kernel and Curvature Coupling"
+)
+
+
+#==========================================================
+# Stopping kernel vector
+#==========================================================
+
+def stopping_kernel_vector(
+        L):
+
+    vals, vecs = np.linalg.eigh(
+        L
+    )
+
+    i0 = np.argmin(
+        np.abs(vals)
+    )
+
+    lam0 = vals[i0]
+
+    u0 = vecs[:, i0]
+
+    return lam0, u0
+
+
+#==========================================================
+# Curvature action
+#==========================================================
+
+def curvature_action(
+        L,
+        F):
+
+    lam0, u0 = (
+        stopping_kernel_vector(
+            L
+        )
+    )
+
+    Fu = F @ u0
+
+    return (
+        lam0,
+        u0,
+        Fu
+    )
+
+
+#==========================================================
+# Coupling measures
+#==========================================================
+
+def curvature_coupling(
+        L,
+        F):
+
+    lam0, u0, Fu = (
+        curvature_action(
+            L,
+            F
+        )
+    )
+
+    #
+    # norm
+    #
+
+    nrm = np.linalg.norm(
+        Fu
+    )
+
+    #
+    # expectation
+    #
+
+    amp = np.vdot(
+        u0,
+        Fu
+    )
+
+    #
+    # angle
+    #
+
+    if nrm < PARAM.tol:
+
+        angle = 0.0
+
+    else:
+
+        c = (
+
+            np.abs(amp)
+
+            /
+
+            nrm
+
+        )
+
+        c = np.clip(
+            c,
+            0.0,
+            1.0
+        )
+
+        angle = np.arccos(
+            c
+        )
+
+    return (
+        nrm,
+        amp,
+        angle
+    )
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def stopping_curvature_report(
+        t,
+        z):
+
+    banner(
+        "Stopping Curvature Coupling"
+    )
+
+    #
+    # operators
+    #
+
+    L = build_stopping_operator(
+        t
+    )
+
+    F = gauge_curvature(
+        t,
+        z
+    )
+
+    #
+    # kernel
+    #
+
+    lam0, u0 = (
+        stopping_kernel_vector(
+            L
+        )
+    )
+
+    #
+    # coupling
+    #
+
+    nrm, amp, angle = (
+        curvature_coupling(
+            L,
+            F
+        )
+    )
+
+    print()
+
+    print(
+        "Ground eigenvalue"
+    )
+
+    print(
+        lam0
+    )
+
+    print()
+
+    print(
+        "||F u0||"
+    )
+
+    print(
+        nrm
+    )
+
+    print()
+
+    print(
+        "<u0,Fu0>"
+    )
+
+    print(
+        amp
+    )
+
+    print()
+
+    print(
+        "Angle (rad)"
+    )
+
+    print(
+        angle
+    )
+
+    print()
+
+    print(
+        "Angle (deg)"
+    )
+
+    print(
+        angle
+        *
+        180.0
+        /
+        np.pi
+    )
+
+    return (
+        L,
+        F,
+        u0
+    )
+
+
+#==========================================================
+# Plot curvature action
+#==========================================================
+
+def plot_curvature_action(
+        F,
+        u0):
+
+    Fu = F @ u0
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        np.abs(Fu),
+        "o-"
+    )
+
+    plt.grid(True)
+
+    plt.xlabel(
+        "Index"
+    )
+
+    plt.ylabel(
+        "|(Fu0)_k|"
+    )
+
+    plt.title(
+        "Curvature Action on Stopping Kernel"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def stopping_curvature_scan(
+        z,
+        tmin=-2.0,
+        tmax=2.0,
+        samples=101):
+
+    banner(
+        "Stopping Curvature Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    values = []
+
+    for tt in ts:
+
+        try:
+
+            L = build_stopping_operator(
+                tt
+            )
+
+            F = gauge_curvature(
+                tt,
+                z
+            )
+
+            nrm, _, _ = (
+                curvature_coupling(
+                    L,
+                    F
+                )
+            )
+
+            values.append(
+                nrm
+            )
+
+        except Exception:
+
+            values.append(
+                np.nan
+            )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        values,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel(
+        "t"
+    )
+
+    plt.ylabel(
+        "||F u0||"
+    )
+
+    plt.title(
+        "Stopping Kernel Curvature Coupling"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+L, F, u0 = (
+    stopping_curvature_report(
+        PARAM.t,
+        z0
+    )
+)
+
+plot_curvature_action(
+    F,
+    u0
+)
+
+stopping_curvature_scan(
+    z0
+)
+
+#==========================================================
+#
+# Part13
+#
+# Holonomy and Stopping Leakage
+#
+#==========================================================
+
+
+def stopping_kernel_vector(
+        L):
+
+    print(
+        "kernel L shape =",
+        np.shape(L)
+    )
+
+    vals, vecs = np.linalg.eigh(
+        L
+    )
+
+    print(
+        "vals shape =",
+        vals.shape
+    )
+
+    print(
+        "vecs shape =",
+        vecs.shape
+    )
+
+    i0 = np.argmin(
+        np.abs(vals)
+    )
+
+    u0 = vecs[:, i0]
+
+    print(
+        "u0 shape =",
+        u0.shape
+    )
+
+    return vals[i0], u0
+
+def holonomy(
+        Gamma,
+        tau=1.0):
+
+    print("holonomy 1")
+
+    Gamma = np.asarray(
+        Gamma,
+        dtype=complex
+    )
+
+    print(
+        "Gamma shape =",
+        Gamma.shape
+    )
+
+    print(
+        "Gamma dtype =",
+        Gamma.dtype
+    )
+
+    vals, vecs = np.linalg.eig(
+        Gamma
+    )
+
+    print(
+        "vals shape =",
+        vals.shape
+    )
+
+    print(
+        "vecs shape =",
+        vecs.shape
+    )
+
+    E = np.diag(
+        np.exp(
+            tau * vals
+        )
+    )
+
+    print(
+        "E shape =",
+        E.shape
+    )
+
+    Vinv = np.linalg.inv(
+        vecs
+    )
+
+    print(
+        "Vinv shape =",
+        Vinv.shape
+    )
+
+    return (
+        vecs
+        @ E
+        @ Vinv
+    )
+
+
+
+banner(
+    "Part13 : Holonomy and Stopping Leakage"
+)
+
+from scipy.linalg import expm
+
+#==========================================================
+# Stopping projector
+#==========================================================
+
+def stopping_projector(
+        u0):
+
+    u0 = np.asarray(
+        u0,
+        dtype=complex
+    ).reshape(-1)
+
+    nrm = np.linalg.norm(
+        u0
+    )
+
+    if nrm < PARAM.tol:
+
+        raise ValueError(
+            "kernel vector is zero"
+        )
+
+    u0 = u0 / nrm
+
+    return np.outer(
+        u0,
+        u0.conjugate()
+    )
+
+
+#==========================================================
+# Leakage by Gamma
+#==========================================================
+
+def gamma_leakage(
+        Gamma,
+        u0):
+
+    n = len(u0)
+
+    P0 = stopping_projector(
+        u0
+    )
+
+    Q0 = (
+        np.identity(
+            n
+        )
+        -
+        P0
+    )
+
+    Gu = Gamma @ u0
+
+    leak = np.linalg.norm(
+        Q0 @ Gu
+    )
+
+    parallel = np.linalg.norm(
+        P0 @ Gu
+    )
+
+    return (
+        leak,
+        parallel,
+        Gu
+    )
+
+
+#==========================================================
+# Leakage by curvature
+#==========================================================
+
+def curvature_leakage(
+        F,
+        u0):
+
+    n = len(u0)
+
+    P0 = stopping_projector(
+        u0
+    )
+
+    Q0 = (
+        np.identity(
+            n
+        )
+        -
+        P0
+    )
+
+    Fu = F @ u0
+
+    leak = np.linalg.norm(
+        Q0 @ Fu
+    )
+
+    parallel = np.linalg.norm(
+        P0 @ Fu
+    )
+
+    return (
+        leak,
+        parallel,
+        Fu
+    )
+
+
+#==========================================================
+# Holonomy
+#
+# U = exp(tau Gamma)
+#==========================================================
+
+def holonomy(
+        Gamma,
+        tau=1.0):
+
+    Gamma = np.asarray(
+        Gamma,
+        dtype=complex
+    )
+
+    return expm(
+        tau * Gamma
+    )
+
+
+#==========================================================
+# Holonomy action
+#==========================================================
+
+def holonomy_action(
+        Gamma,
+        u0,
+        tau=1.0):
+
+    U = holonomy(
+        Gamma,
+        tau
+    )
+
+    u0 = np.asarray(
+        u0,
+        dtype=complex
+    ).reshape(-1)
+
+    v = U @ u0
+
+    return U, v
+
+#==========================================================
+# Report
+#==========================================================
+
+def holonomy_report(
+        t,
+        z,
+        tau=1.0):
+
+    banner(
+        "Holonomy and Leakage"
+    )
+
+    #
+    # operators
+    #
+
+    L = build_stopping_operator(
+        t
+    )
+
+    Gamma = build_connection_matrix(
+        t
+    )
+
+    F = gauge_curvature(
+        t,
+        z
+    )
+
+    #
+    # kernel
+    #
+
+    lam0, u0 = (
+        stopping_kernel_vector(
+            L
+        )
+    )
+
+    #
+    # Gamma leakage
+    #
+
+    gleak, gpar, Gu = (
+        gamma_leakage(
+            Gamma,
+            u0
+        )
+    )
+
+    #
+    # Curvature leakage
+    #
+
+    fleak, fpar, Fu = (
+        curvature_leakage(
+            F,
+            u0
+        )
+    )
+
+    #
+    # Holonomy
+    #
+
+    U, v = holonomy_action(
+        Gamma,
+        u0,
+        tau
+    )
+
+    print()
+
+    print(
+        "||Gamma u0||"
+    )
+
+    print(
+        np.linalg.norm(
+            Gu
+        )
+    )
+
+    print()
+
+    print(
+        "Gamma leakage"
+    )
+
+    print(
+        gleak
+    )
+
+    print()
+
+    print(
+        "Gamma parallel"
+    )
+
+    print(
+        gpar
+    )
+
+    print()
+
+    print(
+        "||F u0||"
+    )
+
+    print(
+        np.linalg.norm(
+            Fu
+        )
+    )
+
+    print()
+
+    print(
+        "Curvature leakage"
+    )
+
+    print(
+        fleak
+    )
+
+    print()
+
+    print(
+        "Curvature parallel"
+    )
+
+    print(
+        fpar
+    )
+
+    print()
+
+    print(
+        "Holonomy displacement"
+    )
+
+    print(
+        np.linalg.norm(
+            v-u0
+        )
+    )
+
+    print()
+
+    print(
+        "<u0,Uu0>"
+    )
+
+    print(
+        np.vdot(
+            u0,
+            v
+        )
+    )
+
+    return (
+        L,
+        Gamma,
+        F,
+        u0,
+        U
+    )
+
+
+#==========================================================
+# Plot holonomy orbit
+#==========================================================
+
+def plot_holonomy_orbit(
+        Gamma,
+        u0,
+        taumax=5.0,
+        samples=200):
+
+    ts = np.linspace(
+        0.0,
+        taumax,
+        samples
+    )
+
+    values = []
+
+    for tau in ts:
+
+        U, v = holonomy_action(
+            Gamma,
+            u0,
+            tau
+        )
+
+        values.append(
+            np.linalg.norm(
+                v-u0
+            )
+        )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        values,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel(
+        "tau"
+    )
+
+    plt.ylabel(
+        "||U(tau)u0-u0||"
+    )
+
+    plt.title(
+        "Holonomy Orbit"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+L, Gamma, F, u0, U = (
+    holonomy_report(
+        PARAM.t,
+        z0
+    )
+)
+
+plot_holonomy_orbit(
+    Gamma,
+    u0
+)
+
+#==========================================================
+#
+# Part14
+#
+# Stopping Kernel Bundle
+#
+#==========================================================
+
+banner(
+    "Part14 : Stopping Kernel Bundle"
+)
+
+#==========================================================
+# Numerical derivative of L
+#==========================================================
+
+def dL_dt(
+        t,
+        h=1.0e-5):
+
+    Lp = build_stopping_operator(
+        t + h
+    )
+
+    Lm = build_stopping_operator(
+        t - h
+    )
+
+    return (
+        Lp - Lm
+    )/(2.0*h)
+
+
+#==========================================================
+# Kernel vector
+#==========================================================
+
+def stopping_kernel_vector(
+        L):
+
+    vals, vecs = np.linalg.eigh(
+        L
+    )
+
+    i0 = np.argmin(
+        np.abs(vals)
+    )
+
+    u0 = vecs[:, i0]
+
+    u0 = (
+        u0
+        /
+        np.linalg.norm(u0)
+    )
+
+    return vals[i0], u0
+
+
+#==========================================================
+# Spectral gap
+#==========================================================
+
+def stopping_gap(
+        L):
+
+    vals = np.sort(
+        np.linalg.eigvalsh(L)
+    )
+
+    nz = vals[
+        np.abs(vals)
+        > PARAM.tol
+    ]
+
+    if len(nz) == 0:
+        return 0.0
+
+    return np.min(
+        np.abs(nz)
+    )
+
+
+#==========================================================
+# Kernel derivative
+#
+# u' = -L^+ L' u
+#==========================================================
+
+def kernel_velocity(
+        t):
+
+    L = build_stopping_operator(
+        t
+    )
+
+    dL = dL_dt(t)
+
+    lam0, u0 = (
+        stopping_kernel_vector(
+            L
+        )
+    )
+
+    Pinv = stopping_pinv(
+        L
+    )
+
+    up = (
+        -Pinv
+        @ dL
+        @ u0
+    )
+
+    return (
+        u0,
+        up,
+        L,
+        dL
+    )
+
+
+#==========================================================
+# Berry connection
+#==========================================================
+
+def berry_connection(
+        u0,
+        up):
+
+    return np.vdot(
+        u0,
+        up
+    )
+
+
+#==========================================================
+# Leakage rate
+#==========================================================
+
+def kernel_leakage_rate(
+        u0,
+        up):
+
+    n = len(u0)
+
+    P0 = np.outer(
+        u0,
+        u0.conjugate()
+    )
+
+    Q0 = (
+        np.identity(
+            n
+        )
+        -
+        P0
+    )
+
+    return np.linalg.norm(
+        Q0 @ up
+    )
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def kernel_bundle_report(
+        t):
+
+    banner(
+        "Stopping Kernel Bundle"
+    )
+
+    (
+        u0,
+        up,
+        L,
+        dL
+    ) = kernel_velocity(
+        t
+    )
+
+    lam0 = np.min(
+        np.linalg.eigvalsh(
+            L
+        )
+    )
+
+    gap = stopping_gap(
+        L
+    )
+
+    speed = np.linalg.norm(
+        up
+    )
+
+    berry = berry_connection(
+        u0,
+        up
+    )
+
+    leak = kernel_leakage_rate(
+        u0,
+        up
+    )
+
+    print()
+    print("Ground eigenvalue")
+    print(lam0)
+
+    print()
+    print("Spectral gap")
+    print(gap)
+
+    print()
+    print("Kernel speed")
+    print(speed)
+
+    print()
+    print("Berry connection")
+    print(berry)
+
+    print()
+    print("Leakage rate")
+    print(leak)
+
+    print()
+    print("<u0,u0'>")
+    print(
+        np.vdot(
+            u0,
+            up
+        )
+    )
+
+    return (
+        L,
+        dL,
+        u0,
+        up
+    )
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def kernel_bundle_scan(
+        tmin=-2.0,
+        tmax=2.0,
+        samples=201):
+
+    banner(
+        "Kernel Bundle Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    speeds = []
+    leaks = []
+    gaps = []
+
+    for tt in ts:
+
+        try:
+
+            (
+                u0,
+                up,
+                L,
+                dL
+            ) = kernel_velocity(
+                tt
+            )
+
+            speeds.append(
+                np.linalg.norm(
+                    up
+                )
+            )
+
+            leaks.append(
+                kernel_leakage_rate(
+                    u0,
+                    up
+                )
+            )
+
+            gaps.append(
+                stopping_gap(
+                    L
+                )
+            )
+
+        except Exception:
+
+            speeds.append(
+                np.nan
+            )
+
+            leaks.append(
+                np.nan
+            )
+
+            gaps.append(
+                np.nan
+            )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        speeds,
+        label="speed"
+    )
+
+    plt.plot(
+        ts,
+        leaks,
+        label="leakage"
+    )
+
+    plt.plot(
+        ts,
+        gaps,
+        label="gap"
+    )
+
+    plt.grid(True)
+    plt.legend()
+    plt.xlabel("t")
+    plt.title(
+        "Stopping Kernel Bundle"
+    )
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+L, dL, u0, up = (
+    kernel_bundle_report(
+        PARAM.t
+    )
+)
+
+kernel_bundle_scan()
+
+#==========================================================
+#
+# Part15
+#
+# Covariant Transport of Stopping Kernel
+#
+#==========================================================
+
+banner(
+    "Part15 : Covariant Transport of Stopping Kernel"
+)
+
+#==========================================================
+# Canonical connection
+#
+# At = L^+ L'
+#==========================================================
+
+def stopping_connection(
+        t):
+
+    L = build_stopping_operator(
+        t
+    )
+
+    dL = dL_dt(
+        t
+    )
+
+    Pinv = stopping_pinv(
+        L
+    )
+
+    At = (
+        Pinv
+        @
+        dL
+    )
+
+    return (
+        At,
+        L,
+        dL
+    )
+
+
+#==========================================================
+# Covariant derivative
+#
+# Du = u' + At u
+#==========================================================
+
+def covariant_kernel_derivative(
+        t):
+
+    (
+        u0,
+        up,
+        L,
+        dL
+    ) = kernel_velocity(
+        t
+    )
+
+    At, _, _ = (
+        stopping_connection(
+            t
+        )
+    )
+
+    Du = (
+        up
+        +
+        At @ u0
+    )
+
+    return (
+        u0,
+        up,
+        Du,
+        At,
+        L,
+        dL
+    )
+
+
+#==========================================================
+# Parallel transport defect
+#==========================================================
+
+def parallel_defect(
+        Du):
+
+    return np.linalg.norm(
+        Du
+    )
+
+
+#==========================================================
+# Gauge energy
+#==========================================================
+
+def connection_energy(
+        At):
+
+    return np.trace(
+        At.T.conjugate()
+        @
+        At
+    ).real
+
+
+#==========================================================
+# Connection radius
+#==========================================================
+
+def connection_radius(
+        At):
+
+    vals = np.linalg.eigvals(
+        At
+    )
+
+    return np.max(
+        np.abs(vals)
+    )
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def transport_report(
+        t):
+
+    banner(
+        "Stopping Kernel Transport"
+    )
+
+    (
+        u0,
+        up,
+        Du,
+        At,
+        L,
+        dL
+    ) = (
+        covariant_kernel_derivative(
+            t
+        )
+    )
+
+    print()
+
+    print(
+        "||u0'||"
+    )
+
+    print(
+        np.linalg.norm(
+            up
+        )
+    )
+
+    print()
+
+    print(
+        "||Du0/Dt||"
+    )
+
+    print(
+        parallel_defect(
+            Du
+        )
+    )
+
+    print()
+
+    print(
+        "Connection norm"
+    )
+
+    print(
+        np.linalg.norm(
+            At
+        )
+    )
+
+    print()
+
+    print(
+        "Connection energy"
+    )
+
+    print(
+        connection_energy(
+            At
+        )
+    )
+
+    print()
+
+    print(
+        "Connection radius"
+    )
+
+    print(
+        connection_radius(
+            At
+        )
+    )
+
+    print()
+
+    print(
+        "<u0,Du0>"
+    )
+
+    print(
+        np.vdot(
+            u0,
+            Du
+        )
+    )
+
+    return (
+        u0,
+        up,
+        Du,
+        At,
+        L,
+        dL
+    )
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def transport_scan(
+        tmin=-2.0,
+        tmax=2.0,
+        samples=201):
+
+    banner(
+        "Transport Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    defects = []
+    speeds = []
+    radii = []
+
+    for tt in ts:
+
+        try:
+
+            (
+                u0,
+                up,
+                Du,
+                At,
+                L,
+                dL
+            ) = (
+                covariant_kernel_derivative(
+                    tt
+                )
+            )
+
+            defects.append(
+                np.linalg.norm(
+                    Du
+                )
+            )
+
+            speeds.append(
+                np.linalg.norm(
+                    up
+                )
+            )
+
+            radii.append(
+                connection_radius(
+                    At
+                )
+            )
+
+        except Exception:
+
+            defects.append(
+                np.nan
+            )
+
+            speeds.append(
+                np.nan
+            )
+
+            radii.append(
+                np.nan
+            )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        defects,
+        label="||Du/Dt||"
+    )
+
+    plt.plot(
+        ts,
+        speeds,
+        label="||u'||"
+    )
+
+    plt.plot(
+        ts,
+        radii,
+        label="radius(At)"
+    )
+
+    plt.grid(True)
+    plt.legend()
+    plt.xlabel("t")
+    plt.title(
+        "Stopping Kernel Transport"
+    )
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+u0, up, Du, At, L, dL = (
+    transport_report(
+        PARAM.t
+    )
+)
+
+transport_scan()
+
+#==========================================================
+#
+# Part16
+#
+# Holonomy of Stopping Kernel Bundle
+#
+#==========================================================
+
+banner(
+    "Part16 : Holonomy of Stopping Kernel Bundle"
+)
+
+#==========================================================
+# Parallel transport operator
+#
+# U_{n+1}
+#   = exp(-dt Gamma_n) U_n
+#==========================================================
+
+from scipy.linalg import expm
+
+
+def stopping_holonomy(
+        t0,
+        t1,
+        steps=400):
+
+    ts = np.linspace(
+        t0,
+        t1,
+        steps
+    )
+
+    Gamma0 = build_connection_matrix(
+        ts[0]
+    )
+
+    n = Gamma0.shape[0]
+
+    U = np.identity(
+        n,
+        dtype=complex
+    )
+
+    dt = (
+        t1 - t0
+    )/(steps-1)
+
+    for tt in ts[:-1]:
+
+        Gamma = (
+            build_connection_matrix(
+                tt
+            )
+        )
+
+        U = (
+            expm(
+                -dt*Gamma
+            )
+            @
+            U
+        )
+
+    return U
+
+    #==========================================================
+# Holonomy action
+#==========================================================
+
+def stopping_holonomy_action(
+        t0,
+        t1,
+        steps=400):
+
+    L0 = build_stopping_operator(
+        t0
+    )
+
+    lam0, u0 = (
+        stopping_kernel_vector(
+            L0
+        )
+    )
+
+    U = stopping_holonomy(
+        t0,
+        t1,
+        steps
+    )
+
+    v = U @ u0
+
+    return U, u0, v
+
+    #==========================================================
+# Report
+#==========================================================
+
+def holonomy_bundle_report(
+        t0,
+        t1,
+        steps=400):
+
+    banner(
+        "Stopping Bundle Holonomy"
+    )
+
+    U, u0, v = (
+        stopping_holonomy_action(
+            t0,
+            t1,
+            steps
+        )
+    )
+
+    phase = np.vdot(
+        u0,
+        v
+    )
+
+    displacement = (
+        np.linalg.norm(
+            v-u0
+        )
+    )
+
+    print()
+    print("Holonomy norm")
+    print(
+        np.linalg.norm(U)
+    )
+
+    print()
+    print("<u0,Uu0>")
+    print(
+        phase
+    )
+
+    print()
+    print("Berry phase")
+    print(
+        np.angle(
+            phase
+        )
+    )
+
+    print()
+    print("Displacement")
+    print(
+        displacement
+    )
+
+    return U, u0, v
+
+    #==========================================================
+# Scan
+#==========================================================
+
+def holonomy_scan(
+        tmax=2.0,
+        samples=80):
+
+    banner(
+        "Holonomy Scan"
+    )
+
+    ts = np.linspace(
+        0.0,
+        tmax,
+        samples
+    )
+
+    values = []
+
+    for tt in ts:
+
+        try:
+
+            U, u0, v = (
+                holonomy_bundle_report(
+                    0.0,
+                    tt,
+                    200
+                )
+            )
+
+            values.append(
+                np.linalg.norm(
+                    v-u0
+                )
+            )
+
+        except Exception:
+
+            values.append(
+                np.nan
+            )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        values,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("t")
+    plt.ylabel(
+        "||Uu0-u0||"
+    )
+
+    plt.title(
+        "Stopping Bundle Holonomy"
+    )
+
+    plt.show()
+
+    #==========================================================
+# Test
+#==========================================================
+
+U, u0, v = (
+    holonomy_bundle_report(
+        -1.0,
+        1.0,
+        400
+    )
+)
+
+holonomy_scan()
+
+#==========================================================
+#
+# Part17
+#
+# Curvature of Stopping Kernel Bundle
+#
+#==========================================================
+
+banner(
+    "Part17 : Curvature of Stopping Kernel Bundle"
+)
+
+
+#==========================================================
+# Kernel projector
+#
+# P = uu*
+#==========================================================
+
+def kernel_projector_bundle(
+        u):
+
+    u = np.asarray(
+        u,
+        dtype=complex
+    ).reshape(-1)
+
+    nrm = np.linalg.norm(
+        u
+    )
+
+    if nrm < PARAM.tol:
+
+        raise ValueError(
+            "kernel vector is zero"
+        )
+
+    u = u / nrm
+
+    return np.outer(
+        u,
+        u.conjugate()
+    )
+
+
+#==========================================================
+# Projector derivative
+#==========================================================
+
+def projector_derivative(
+        t,
+        h=1.0e-5):
+
+    Lp = build_stopping_operator(t + h)
+    _, up = stopping_kernel_vector(Lp)
+
+    Lm = build_stopping_operator(t - h)
+    _, um = stopping_kernel_vector(Lm)
+
+    #
+    # phase fixing
+    #
+    if np.vdot(up, um).real < 0:
+        up = -up
+
+    Pp = kernel_projector_bundle(up)
+    Pm = kernel_projector_bundle(um)
+
+    return (Pp - Pm)/(2*h)
+
+
+#==========================================================
+# Bundle curvature
+#
+# K=[Pdot,P]
+#==========================================================
+
+def stopping_bundle_curvature(
+        t):
+
+    L = build_stopping_operator(
+        t
+    )
+
+    _, u = (
+        stopping_kernel_vector(
+            L
+        )
+    )
+
+    P = kernel_projector_bundle(
+        u
+    )
+
+    Pdot = projector_derivative(
+        t
+    )
+
+    K = commutator(
+        Pdot,
+        P
+    )
+
+    return K, P, Pdot
+
+
+#==========================================================
+# Curvature energy
+#==========================================================
+
+def bundle_curvature_energy(
+        K):
+
+    return np.trace(
+        K.conjugate().T @ K
+    ).real
+
+
+#==========================================================
+# Curvature rank
+#==========================================================
+
+def bundle_curvature_rank(
+        K):
+
+    return np.linalg.matrix_rank(
+        K
+    )
+
+
+#==========================================================
+# Curvature radius
+#==========================================================
+
+def bundle_curvature_radius(
+        K):
+
+    vals = np.linalg.eigvals(
+        K
+    )
+
+    if len(vals) == 0:
+
+        return 0.0
+
+    return np.max(
+        np.abs(vals)
+    )
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def stopping_bundle_report(
+        t):
+
+    banner(
+        "Stopping Bundle Curvature"
+    )
+
+    K, P, Pdot = (
+        stopping_bundle_curvature(
+            t
+        )
+    )
+
+    print()
+    print("||Pdot||")
+    print(
+        np.linalg.norm(
+            Pdot
+        )
+    )
+
+    print()
+    print("Curvature norm")
+    print(
+        np.linalg.norm(
+            K
+        )
+    )
+
+    print()
+    print("Curvature energy")
+    print(
+        bundle_curvature_energy(
+            K
+        )
+    )
+
+    print()
+    print("Curvature rank")
+    print(
+        bundle_curvature_rank(
+            K
+        )
+    )
+
+    print()
+    print("Spectral radius")
+    print(
+        bundle_curvature_radius(
+            K
+        )
+    )
+
+    return (
+        K,
+        P,
+        Pdot
+    )
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def stopping_bundle_scan(
+        tmin=-2.0,
+        tmax=2.0,
+        samples=101):
+
+    banner(
+        "Stopping Bundle Curvature Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    values = []
+
+    for tt in ts:
+
+        try:
+
+            K, _, _ = (
+                stopping_bundle_curvature(
+                    tt
+                )
+            )
+
+            values.append(
+                np.linalg.norm(
+                    K
+                )
+            )
+
+        except Exception:
+
+            values.append(
+                np.nan
+            )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        values,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("t")
+    plt.ylabel("||K||")
+
+    plt.title(
+        "Stopping Bundle Curvature"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Spectrum plot
+#==========================================================
+
+def plot_bundle_curvature(
+        K):
+
+    vals = np.linalg.eigvals(
+        K
+    )
+
+    plt.figure(
+        figsize=(6,6)
+    )
+
+    plt.scatter(
+        vals.real,
+        vals.imag,
+        s=40
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("Re")
+    plt.ylabel("Im")
+
+    plt.title(
+        "Bundle Curvature Spectrum"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+K, P, Pdot = (
+    stopping_bundle_report(
+        PARAM.t
+    )
+)
+
+plot_bundle_curvature(
+    K
+)
+
+stopping_bundle_scan()
+
+#==========================================================
+#
+# Part18
+#
+# Geometric Phase and Curvature Flux
+#
+#==========================================================
+
+banner(
+    "Part18 : Geometric Phase and Curvature Flux"
+)
+
+DIFF_STEP = 1.0e-5
+
+
+#==========================================================
+# Ground stopping vector
+#==========================================================
+
+def stopping_ground_vector(t):
+
+    L = build_stopping_operator(t)
+
+    vals, vecs = np.linalg.eigh(L)
+
+    i0 = np.argmin(vals)
+
+    lam0 = vals[i0]
+
+    u0 = vecs[:, i0]
+
+    return lam0, u0
+
+
+#==========================================================
+# Kernel projector
+#==========================================================
+
+def kernel_bundle_projector(t):
+
+    _, u = stopping_ground_vector(t)
+
+    return np.outer(
+        u,
+        u.conjugate()
+    )
+
+
+#==========================================================
+# Projector derivative
+#==========================================================
+
+def projector_derivative(
+        t,
+        h=DIFF_STEP):
+
+    Pp = kernel_bundle_projector(
+        t + h
+    )
+
+    Pm = kernel_bundle_projector(
+        t - h
+    )
+
+    return (
+        Pp - Pm
+    )/(2.0*h)
+
+
+#==========================================================
+# Bundle curvature
+#
+# K=[P',P]
+#==========================================================
+
+def bundle_curvature(
+        t,
+        h=DIFF_STEP):
+
+    P = kernel_bundle_projector(t)
+
+    dP = projector_derivative(
+        t,
+        h
+    )
+
+    return commutator(
+        dP,
+        P
+    )
+
+
+#==========================================================
+# Curvature norm
+#==========================================================
+
+def bundle_curvature_norm(
+        t):
+
+    K = bundle_curvature(t)
+
+    return np.linalg.norm(K)
+
+
+#==========================================================
+# Curvature flux
+#
+# Φ(T)=∫ ||K|| dt
+#==========================================================
+
+def curvature_flux(
+        t0,
+        t1,
+        samples=400):
+
+    ts = np.linspace(
+        t0,
+        t1,
+        samples
+    )
+
+    vals = np.array(
+        [
+            bundle_curvature_norm(tt)
+            for tt in ts
+        ]
+    )
+
+    return np.trapz(
+        vals,
+        ts
+    )
+
+
+#==========================================================
+# Holonomy overlap
+#==========================================================
+
+def kernel_overlap(
+        t0,
+        t1):
+
+    _, u0 = stopping_ground_vector(t0)
+    _, u1 = stopping_ground_vector(t1)
+
+    amp = np.vdot(
+        u0,
+        u1
+    )
+
+    return amp
+
+
+#==========================================================
+# Holonomy displacement
+#==========================================================
+
+def kernel_displacement(
+        t0,
+        t1):
+
+    amp = kernel_overlap(
+        t0,
+        t1
+    )
+
+    c = np.abs(amp)
+
+    c = np.clip(
+        c,
+        0.0,
+        1.0
+    )
+
+    return np.sqrt(
+        1.0 - c*c
+    )
+
+
+#==========================================================
+# Berry phase
+#==========================================================
+
+def berry_phase(
+        t0,
+        t1):
+
+    amp = kernel_overlap(
+        t0,
+        t1
+    )
+
+    return np.angle(amp)
+
+
+#==========================================================
+# Parallel transport estimate
+#
+# d ≈ sin Φ
+#==========================================================
+
+def holonomy_prediction(
+        t0,
+        t1):
+
+    Phi = curvature_flux(
+        t0,
+        t1
+    )
+
+    return np.sin(Phi)
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def geometric_phase_report(
+        t0,
+        t1):
+
+    banner(
+        "Geometric Phase Report"
+    )
+
+    Phi = curvature_flux(
+        t0,
+        t1
+    )
+
+    disp = kernel_displacement(
+        t0,
+        t1
+    )
+
+    phase = berry_phase(
+        t0,
+        t1
+    )
+
+    pred = holonomy_prediction(
+        t0,
+        t1
+    )
+
+    print()
+    print("t0")
+    print(t0)
+
+    print()
+    print("t1")
+    print(t1)
+
+    print()
+    print("Curvature flux")
+    print(Phi)
+
+    print()
+    print("Holonomy displacement")
+    print(disp)
+
+    print()
+    print("sin(Phi)")
+    print(pred)
+
+    print()
+    print("Berry phase")
+    print(phase)
+
+    print()
+
+    if abs(pred) > PARAM.tol:
+
+        print(
+            "Relative error"
+        )
+
+        print(
+            abs(
+                disp - pred
+            )/abs(pred)
+        )
+
+    else:
+
+        print(
+            "Relative error"
+        )
+
+        print(
+            abs(disp)
+        )
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def geometric_phase_scan(
+        tmin=-1.0,
+        tmax=1.0,
+        samples=100):
+
+    banner(
+        "Geometric Phase Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    flux = []
+    disp = []
+    phase = []
+
+    t0 = ts[0]
+
+    for tt in ts:
+
+        flux.append(
+            curvature_flux(
+                t0,
+                tt
+            )
+        )
+
+        disp.append(
+            kernel_displacement(
+                t0,
+                tt
+            )
+        )
+
+        phase.append(
+            berry_phase(
+                t0,
+                tt
+            )
+        )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        flux,
+        linewidth=2
+    )
+
+    plt.grid(True)
+    plt.xlabel("t")
+    plt.ylabel("Flux")
+    plt.title(
+        "Curvature Flux"
+    )
+    plt.show()
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        disp,
+        linewidth=2
+    )
+
+    plt.grid(True)
+    plt.xlabel("t")
+    plt.ylabel("Displacement")
+    plt.title(
+        "Holonomy Displacement"
+    )
+    plt.show()
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        phase,
+        linewidth=2
+    )
+
+    plt.grid(True)
+    plt.xlabel("t")
+    plt.ylabel("Phase")
+    plt.title(
+        "Berry Phase"
+    )
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+geometric_phase_report(
+    PARAM.t,
+    PARAM.t + 0.10
+)
+
+geometric_phase_scan()
+
+#==========================================================
+#
+# Part19
+#
+# Berry Holonomy and Topological Charge
+#
+#==========================================================
+
+banner(
+    "Part19 : Berry Holonomy and Topological Charge"
+)
+
+BERRY_STEP = 1.0e-5
+
+
+#==========================================================
+# Gauge-fixed ground vector
+#==========================================================
+
+def ground_vector(t):
+
+    _, u = stopping_ground_vector(t)
+
+    return u
+
+
+#==========================================================
+# Parallel transport gauge
+#==========================================================
+
+def gauge_fixed_vector(
+        tref,
+        t):
+
+    u0 = ground_vector(tref)
+    u = ground_vector(t)
+
+    amp = np.vdot(
+        u0,
+        u
+    )
+
+    if np.abs(amp) > PARAM.tol:
+
+        u = (
+            amp.conjugate()
+            /
+            np.abs(amp)
+        ) * u
+
+    return u
+
+
+#==========================================================
+# Numerical derivative
+#==========================================================
+
+def ground_derivative(
+        tref,
+        t,
+        h=BERRY_STEP):
+
+    up = gauge_fixed_vector(
+        tref,
+        t + h
+    )
+
+    um = gauge_fixed_vector(
+        tref,
+        t - h
+    )
+
+    return (
+        up - um
+    )/(2.0*h)
+
+
+#==========================================================
+# Berry connection
+#
+# A=i<u,u'>
+#==========================================================
+
+def berry_connection(
+        tref,
+        t):
+
+    u = gauge_fixed_vector(
+        tref,
+        t
+    )
+
+    du = ground_derivative(
+        tref,
+        t
+    )
+
+    return np.real_if_close(
+        1j*np.vdot(
+            u,
+            du
+        )
+    )
+
+
+#==========================================================
+# Berry curvature
+#
+# Ω=dA/dt
+#==========================================================
+
+def berry_curvature(
+        tref,
+        t,
+        h=BERRY_STEP):
+
+    Ap = berry_connection(
+        tref,
+        t + h
+    )
+
+    Am = berry_connection(
+        tref,
+        t - h
+    )
+
+    return (
+        Ap - Am
+    )/(2.0*h)
+
+
+#==========================================================
+# Berry phase
+#==========================================================
+
+def berry_phase_integral(
+        t0,
+        t1,
+        samples=400):
+
+    ts = np.linspace(
+        t0,
+        t1,
+        samples
+    )
+
+    vals = np.array(
+        [
+            berry_connection(
+                t0,
+                tt
+            )
+            for tt in ts
+        ]
+    )
+
+    return np.trapezoid(
+        vals,
+        ts
+    )
+
+
+#==========================================================
+# Topological charge
+#==========================================================
+
+def topological_charge(
+        t0,
+        t1,
+        samples=400):
+
+    gamma = berry_phase_integral(
+        t0,
+        t1,
+        samples
+    )
+
+    return gamma/(2.0*np.pi)
+
+
+#==========================================================
+# Closed-loop holonomy
+#==========================================================
+
+def closed_loop_phase(
+        t0,
+        t1):
+
+    u0 = gauge_fixed_vector(
+        t0,
+        t0
+    )
+
+    u1 = gauge_fixed_vector(
+        t0,
+        t1
+    )
+
+    amp = np.vdot(
+        u0,
+        u1
+    )
+
+    return np.angle(
+        amp
+    )
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def topological_report(
+        t0,
+        t1):
+
+    banner(
+        "Topological Report"
+    )
+
+    gamma = berry_phase_integral(
+        t0,
+        t1
+    )
+
+    q = topological_charge(
+        t0,
+        t1
+    )
+
+    phase = closed_loop_phase(
+        t0,
+        t1
+    )
+
+    print()
+    print("t0")
+    print(t0)
+
+    print()
+    print("t1")
+    print(t1)
+
+    print()
+    print("Integrated Berry phase")
+    print(gamma)
+
+    print()
+    print("Endpoint phase")
+    print(phase)
+
+    print()
+    print("Topological charge")
+    print(q)
+
+    print()
+    print("2πQ")
+    print(
+        2.0*np.pi*q
+    )
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def topological_scan(
+        tmin=-1.0,
+        tmax=1.0,
+        samples=200):
+
+    banner(
+        "Topological Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    charge = []
+    phase = []
+
+    t0 = ts[0]
+
+    for tt in ts:
+
+        charge.append(
+            topological_charge(
+                t0,
+                tt
+            )
+        )
+
+        phase.append(
+            closed_loop_phase(
+                t0,
+                tt
+            )
+        )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        charge,
+        linewidth=2
+    )
+
+    plt.grid(True)
+    plt.xlabel("t")
+    plt.ylabel("Q")
+    plt.title(
+        "Topological Charge"
+    )
+    plt.show()
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        phase,
+        linewidth=2
+    )
+
+    plt.grid(True)
+    plt.xlabel("t")
+    plt.ylabel("Phase")
+    plt.title(
+        "Berry Holonomy Phase"
+    )
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+topological_report(
+    PARAM.t,
+    PARAM.t + 0.10
+)
+
+topological_scan()
+
+#==========================================================
+#
+# Part20
+#
+# Global Consistency Verification
+#
+#==========================================================
+
+banner(
+    "Part20 : Global Consistency Verification"
+)
+
+#==========================================================
+# Spectral gap
+#==========================================================
+
+def spectral_gap(t):
+
+    L = build_stopping_operator(t)
+
+    vals = np.linalg.eigvalsh(L)
+
+    vals = np.sort(vals)
+
+    if len(vals) < 2:
+        return 0.0
+
+    return vals[1] - vals[0]
+
+
+#==========================================================
+# Leakage
+#==========================================================
+
+def kernel_leakage(t):
+
+    L = build_stopping_operator(t)
+
+    lam, u = stopping_ground_vector(t)
+
+    return np.linalg.norm(L @ u)
+
+
+#==========================================================
+# Consistency table
+#==========================================================
+
+def consistency_table(
+        tmin=-1.0,
+        tmax=1.0,
+        samples=80):
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    gap = []
+    curvature = []
+    leakage = []
+    berry = []
+    topo = []
+
+    t0 = ts[0]
+
+    for tt in ts:
+
+        gap.append(
+            spectral_gap(tt)
+        )
+
+        curvature.append(
+            bundle_curvature_norm(tt)
+        )
+
+        leakage.append(
+            kernel_leakage(tt)
+        )
+
+        berry.append(
+            berry_phase(
+                t0,
+                tt
+            )
+        )
+
+        topo.append(
+            np.real_if_close(
+                topological_charge(
+                    t0,
+                    tt
+                )
+            )
+        )
+
+    return (
+        ts,
+        np.array(gap),
+        np.array(curvature),
+        np.array(leakage),
+        np.array(berry),
+        np.array(topo)
+    )
+
+
+#==========================================================
+# Correlation
+#==========================================================
+
+def correlation(x,y):
+
+    if np.std(x)<1.0e-14:
+        return 0.0
+
+    if np.std(y)<1.0e-14:
+        return 0.0
+
+    return np.corrcoef(
+        x,
+        y
+    )[0,1]
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def global_consistency_report():
+
+    banner(
+        "Global Consistency Report"
+    )
+
+    (
+        ts,
+        gap,
+        curvature,
+        leakage,
+        berry,
+        topo
+    ) = consistency_table()
+
+    print()
+
+    print("Correlation(gap, curvature)")
+    print(
+        correlation(
+            gap,
+            curvature
+        )
+    )
+
+    print()
+
+    print("Correlation(gap, leakage)")
+    print(
+        correlation(
+            gap,
+            leakage
+        )
+    )
+
+    print()
+
+    print("Correlation(curvature, leakage)")
+    print(
+        correlation(
+            curvature,
+            leakage
+        )
+    )
+
+    print()
+
+    print("Correlation(curvature, Berry)")
+    print(
+        correlation(
+            curvature,
+            berry
+        )
+    )
+
+    print()
+
+    print("Correlation(curvature, topology)")
+    print(
+        correlation(
+            curvature,
+            topo
+        )
+    )
+
+    print()
+
+    print("Maximum leakage")
+    print(
+        np.max(
+            leakage
+        )
+    )
+
+    print()
+
+    print("Maximum curvature")
+    print(
+        np.max(
+            curvature
+        )
+    )
+
+    print()
+
+    print("Maximum spectral gap")
+    print(
+        np.max(
+            gap
+        )
+    )
+
+
+#==========================================================
+# Plots
+#==========================================================
+
+def global_consistency_scan():
+
+    banner(
+        "Global Consistency Scan"
+    )
+
+    (
+        ts,
+        gap,
+        curvature,
+        leakage,
+        berry,
+        topo
+    ) = consistency_table()
+
+    plt.figure(figsize=(8,4))
+    plt.plot(ts,gap,label="Gap")
+    plt.plot(ts,curvature,label="Curvature")
+    plt.grid(True)
+    plt.legend()
+    plt.title("Gap vs Curvature")
+    plt.show()
+
+    plt.figure(figsize=(8,4))
+    plt.plot(ts,leakage,label="Leakage")
+    plt.grid(True)
+    plt.legend()
+    plt.title("Kernel Leakage")
+    plt.show()
+
+    plt.figure(figsize=(8,4))
+    plt.plot(ts,berry,label="Berry")
+    plt.grid(True)
+    plt.legend()
+    plt.title("Berry Phase")
+    plt.show()
+
+    plt.figure(figsize=(8,4))
+    plt.plot(ts,np.real(topo),label="Topology")
+    plt.grid(True)
+    plt.legend()
+    plt.title("Topological Charge")
+    plt.show()
+
+
+#==========================================================
+# Overall score
+#==========================================================
+
+def stopping_kernel_score():
+
+    (
+        ts,
+        gap,
+        curvature,
+        leakage,
+        berry,
+        topo
+    ) = consistency_table()
+
+    score = 0.0
+
+    score += np.mean(gap)
+
+    score += np.mean(curvature)
+
+    score -= np.mean(leakage)
+
+    score += np.mean(np.abs(berry))
+
+    score += np.mean(np.abs(topo))
+
+    return score
+
+
+#==========================================================
+# Final
+#==========================================================
+
+global_consistency_report()
+
+global_consistency_scan()
+
+print()
+print("="*60)
+print("Stopping Kernel Global Score")
+print("="*60)
+print(stopping_kernel_score())
+
+
+#==========================================================
+#
+# Part21
+#
+# Stopping Hodge Decomposition
+#
+#==========================================================
+
+banner(
+    "Part21 : Stopping Hodge Decomposition"
+)
+
+#==========================================================
+# Image projector
+#
+# P_im = I - Pker
+#==========================================================
+
+def image_projector(
+        L):
+
+    n = L.shape[0]
+
+    Pker = kernel_projector(
+        L
+    )
+
+    return (
+        np.identity(
+            n
+        )
+        -
+        Pker
+    )
+
+
+#==========================================================
+# Hodge decomposition
+#
+# x = Pker x + Pim x
+#==========================================================
+
+def hodge_decomposition(
+        L,
+        x):
+
+    Pker = kernel_projector(
+        L
+    )
+
+    Pim = image_projector(
+        L
+    )
+
+    xker = Pker @ x
+
+    xim = Pim @ x
+
+    return (
+        xker,
+        xim,
+        Pker,
+        Pim
+    )
+
+
+#==========================================================
+# Orthogonality
+#==========================================================
+
+def orthogonality_error(
+        Pker,
+        Pim):
+
+    return np.linalg.norm(
+        Pker @ Pim
+    )
+
+
+#==========================================================
+# Completeness
+#
+# Pker+Pim = I
+#==========================================================
+
+def completeness_error(
+        Pker,
+        Pim):
+
+    I = np.identity(
+        Pker.shape[0]
+    )
+
+    return np.linalg.norm(
+
+        Pker
+
+        +
+
+        Pim
+
+        -
+
+        I
+
+    )
+
+
+#==========================================================
+# Reconstruction
+#
+# x = xker + xim
+#==========================================================
+
+def reconstruction_error(
+        x,
+        xker,
+        xim):
+
+    return np.linalg.norm(
+
+        x
+
+        -
+
+        xker
+
+        -
+
+        xim
+
+    )
+
+
+#==========================================================
+# Hodge energy
+#==========================================================
+
+def hodge_energy(
+        xker,
+        xim):
+
+    return (
+
+        np.linalg.norm(xker)**2,
+
+        np.linalg.norm(xim)**2
+
+    )
+
+
+#==========================================================
+# Random vector
+#==========================================================
+
+def random_state(
+        n):
+
+    x = np.random.randn(n)
+
+    x /= np.linalg.norm(x)
+
+    return x
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def hodge_report(
+        t):
+
+    banner(
+        "Stopping Hodge Report"
+    )
+
+    L = build_stopping_operator(
+        t
+    )
+
+    n = L.shape[0]
+
+    x = random_state(
+        n
+    )
+
+    xker, xim, Pker, Pim = (
+
+        hodge_decomposition(
+            L,
+            x
+        )
+
+    )
+
+    Ek, Ei = hodge_energy(
+        xker,
+        xim
+    )
+
+    print()
+
+    print("Kernel dimension")
+
+    print(
+        kernel_dimension(
+            L
+        )
+    )
+
+    print()
+
+    print("Orthogonality")
+
+    print(
+        orthogonality_error(
+            Pker,
+            Pim
+        )
+    )
+
+    print()
+
+    print("Completeness")
+
+    print(
+        completeness_error(
+            Pker,
+            Pim
+        )
+    )
+
+    print()
+
+    print("Reconstruction")
+
+    print(
+        reconstruction_error(
+            x,
+            xker,
+            xim
+        )
+    )
+
+    print()
+
+    print("Kernel energy")
+
+    print(Ek)
+
+    print()
+
+    print("Image energy")
+
+    print(Ei)
+
+    print()
+
+    print("Total")
+
+    print(Ek+Ei)
+
+    return (
+        L,
+        Pker,
+        Pim
+    )
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def hodge_scan(
+
+        tmin=-2.0,
+
+        tmax=2.0,
+
+        samples=101):
+
+    banner(
+        "Stopping Hodge Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    orth = []
+
+    comp = []
+
+    recon = []
+
+    dims = []
+
+    for tt in ts:
+
+        try:
+
+            L = build_stopping_operator(
+                tt
+            )
+
+            n = L.shape[0]
+
+            x = random_state(
+                n
+            )
+
+            xker, xim, Pker, Pim = (
+
+                hodge_decomposition(
+                    L,
+                    x
+                )
+
+            )
+
+            orth.append(
+
+                orthogonality_error(
+                    Pker,
+                    Pim
+                )
+
+            )
+
+            comp.append(
+
+                completeness_error(
+                    Pker,
+                    Pim
+                )
+
+            )
+
+            recon.append(
+
+                reconstruction_error(
+                    x,
+                    xker,
+                    xim
+                )
+
+            )
+
+            dims.append(
+
+                kernel_dimension(
+                    L
+                )
+
+            )
+
+        except Exception:
+
+            orth.append(np.nan)
+
+            comp.append(np.nan)
+
+            recon.append(np.nan)
+
+            dims.append(np.nan)
+
+    plt.figure(figsize=(8,4))
+
+    plt.plot(
+        ts,
+        orth,
+        label="Orthogonality"
+    )
+
+    plt.plot(
+        ts,
+        comp,
+        label="Completeness"
+    )
+
+    plt.plot(
+        ts,
+        recon,
+        label="Reconstruction"
+    )
+
+    plt.grid(True)
+
+    plt.legend()
+
+    plt.xlabel("t")
+
+    plt.title(
+        "Stopping Hodge Decomposition"
+    )
+
+    plt.show()
+
+    plt.figure(figsize=(8,4))
+
+    plt.plot(
+        ts,
+        dims,
+        linewidth=2
+    )
+
+    plt.grid(True)
+
+    plt.xlabel("t")
+
+    plt.ylabel("Kernel dimension")
+
+    plt.title(
+        "Kernel Dimension"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+L, Pker, Pim = (
+
+    hodge_report(
+        PARAM.t
+    )
+
+)
+
+hodge_scan()
+
+#==========================================================
+#
+# Part22
+#
+# Stopping Weitzenböck Identity
+#
+#==========================================================
+
+banner(
+    "Part22 : Stopping Weitzenböck Identity"
+)
+
+#==========================================================
+# Rough Laplacian
+#
+# Δ0 = Γ*Γ
+#==========================================================
+
+def rough_laplacian(
+        Gamma):
+
+    return (
+        Gamma.conjugate().T
+        @
+        Gamma
+    )
+
+
+#==========================================================
+# Curvature term
+#
+# R = [Γ,L]
+#==========================================================
+
+def curvature_term(
+        t):
+
+    Gamma = build_connection_matrix(
+        t
+    )
+
+    L = build_stopping_operator(
+        t
+    )
+
+    return commutator(
+        Gamma,
+        L
+    )
+
+
+#==========================================================
+# Weitzenböck operator
+#
+# ΔW = Γ*Γ + R
+#==========================================================
+
+def weitzenbock_operator(
+        t):
+
+    Gamma = build_connection_matrix(
+        t
+    )
+
+    Delta0 = rough_laplacian(
+        Gamma
+    )
+
+    R = curvature_term(
+        t
+    )
+
+    DeltaW = (
+        Delta0
+        +
+        R
+    )
+
+    return (
+        DeltaW,
+        Delta0,
+        R,
+        Gamma
+    )
+
+
+#==========================================================
+# Numerical Laplacian
+#
+# Δ=L²
+#==========================================================
+
+def stopping_laplacian(
+        t):
+
+    L = build_stopping_operator(
+        t
+    )
+
+    return (
+        L
+        @
+        L
+    )
+
+
+#==========================================================
+# Weitzenböck defect
+#
+# ||Δ-ΔW||
+#==========================================================
+
+def weitzenbock_defect(
+        Delta,
+        DeltaW):
+
+    return np.linalg.norm(
+        Delta
+        -
+        DeltaW
+    )
+
+
+#==========================================================
+# Curvature ratio
+#==========================================================
+
+def curvature_ratio(
+        Delta0,
+        R):
+
+    a = np.linalg.norm(
+        Delta0
+    )
+
+    b = np.linalg.norm(
+        R
+    )
+
+    if a < PARAM.tol:
+
+        return np.nan
+
+    return b/a
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def weitzenbock_report(
+        t):
+
+    banner(
+        "Stopping Weitzenböck Report"
+    )
+
+    Delta = stopping_laplacian(
+        t
+    )
+
+    DeltaW, Delta0, R, Gamma = (
+
+        weitzenbock_operator(
+            t
+        )
+
+    )
+
+    print()
+
+    print("||L²||")
+
+    print(
+        np.linalg.norm(
+            Delta
+        )
+    )
+
+    print()
+
+    print("||Γ*Γ||")
+
+    print(
+        np.linalg.norm(
+            Delta0
+        )
+    )
+
+    print()
+
+    print("||Curvature||")
+
+    print(
+        np.linalg.norm(
+            R
+        )
+    )
+
+    print()
+
+    print("Curvature ratio")
+
+    print(
+        curvature_ratio(
+            Delta0,
+            R
+        )
+    )
+
+    print()
+
+    print("Weitzenböck defect")
+
+    print(
+        weitzenbock_defect(
+            Delta,
+            DeltaW
+        )
+    )
+
+    vals = np.linalg.eigvalsh(
+        DeltaW
+    )
+
+    print()
+
+    print("Minimum eigenvalue")
+
+    print(
+        vals[0]
+    )
+
+    print()
+
+    print("Maximum eigenvalue")
+
+    print(
+        vals[-1]
+    )
+
+    return (
+        Delta,
+        DeltaW,
+        Delta0,
+        R
+    )
+
+
+#==========================================================
+# Curvature action
+#==========================================================
+
+def weitzenbock_kernel_action(
+        t):
+
+    L = build_stopping_operator(
+        t
+    )
+
+    DeltaW, _, _, _ = (
+
+        weitzenbock_operator(
+            t
+        )
+
+    )
+
+    lam, u0 = (
+
+        stopping_kernel_vector(
+            L
+        )
+
+    )
+
+    w = DeltaW @ u0
+
+    print()
+
+    print("Ground eigenvalue")
+
+    print(lam)
+
+    print()
+
+    print("||ΔWu0||")
+
+    print(
+        np.linalg.norm(
+            w
+        )
+    )
+
+    print()
+
+    print("<u0,ΔWu0>")
+
+    print(
+        np.vdot(
+            u0,
+            w
+        )
+    )
+
+    return w
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def weitzenbock_scan(
+
+        tmin=-2,
+
+        tmax=2,
+
+        samples=101):
+
+    banner(
+        "Stopping Weitzenböck Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    defects = []
+
+    ratios = []
+
+    curv = []
+
+    for tt in ts:
+
+        try:
+
+            Delta = stopping_laplacian(
+                tt
+            )
+
+            DeltaW, Delta0, R, _ = (
+
+                weitzenbock_operator(
+                    tt
+                )
+
+            )
+
+            defects.append(
+
+                weitzenbock_defect(
+                    Delta,
+                    DeltaW
+                )
+
+            )
+
+            ratios.append(
+
+                curvature_ratio(
+                    Delta0,
+                    R
+                )
+
+            )
+
+            curv.append(
+
+                np.linalg.norm(
+                    R
+                )
+
+            )
+
+        except Exception:
+
+            defects.append(np.nan)
+
+            ratios.append(np.nan)
+
+            curv.append(np.nan)
+
+    plt.figure(figsize=(8,4))
+
+    plt.plot(
+        ts,
+        defects,
+        label="Defect"
+    )
+
+    plt.plot(
+        ts,
+        ratios,
+        label="Curvature ratio"
+    )
+
+    plt.plot(
+        ts,
+        curv,
+        label="Curvature"
+    )
+
+    plt.grid(True)
+
+    plt.legend()
+
+    plt.xlabel("t")
+
+    plt.title(
+        "Stopping Weitzenböck Identity"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+Delta, DeltaW, Delta0, R = (
+
+    weitzenbock_report(
+        PARAM.t
+    )
+
+)
+
+weitzenbock_kernel_action(
+    PARAM.t
+)
+
+weitzenbock_scan()
+
+#==========================================================
+#
+# Part22.5
+#
+# Stopping Weitzenbock Identity
+# (Canonical Connection Version)
+#
+#==========================================================
+
+banner(
+    "Part22.5 : Canonical Weitzenbock Identity"
+)
+
+#==========================================================
+# Rough Laplacian
+#==========================================================
+
+def canonical_rough_laplacian(
+        At):
+
+    return (
+        At.conjugate().T
+        @
+        At
+    )
+
+
+#==========================================================
+# Curvature
+#
+# [At,L]
+#==========================================================
+
+def canonical_curvature(
+        At,
+        L):
+
+    return (
+        At @ L
+        -
+        L @ At
+    )
+
+
+#==========================================================
+# Canonical Weitzenbock operator
+#==========================================================
+
+def canonical_weitzenbock(
+        t):
+
+    At, L, dL = (
+        stopping_connection(
+            t
+        )
+    )
+
+    Delta0 = (
+        canonical_rough_laplacian(
+            At
+        )
+    )
+
+    R = (
+        canonical_curvature(
+            At,
+            L
+        )
+    )
+
+    DeltaA = (
+        Delta0
+        +
+        R
+    )
+
+    return (
+        DeltaA,
+        Delta0,
+        R,
+        At,
+        L
+    )
+
+
+#==========================================================
+# Defect
+#==========================================================
+
+def canonical_defect(
+        t):
+
+    Delta = stopping_laplacian(
+        t
+    )
+
+    DeltaA, _, _, _, _ = (
+        canonical_weitzenbock(
+            t
+        )
+    )
+
+    return np.linalg.norm(
+        Delta
+        -
+        DeltaA
+    )
+
+
+#==========================================================
+# Kernel action
+#==========================================================
+
+def canonical_kernel_action(
+        t):
+
+    (
+        u0,
+        up,
+        Du,
+        At,
+        L,
+        dL
+    ) = (
+        covariant_kernel_derivative(
+            t
+        )
+    )
+
+    DeltaA, _, _, _, _ = (
+        canonical_weitzenbock(
+            t
+        )
+    )
+
+    w = (
+        DeltaA
+        @
+        u0
+    )
+
+    return (
+        np.linalg.norm(
+            w
+        ),
+        np.vdot(
+            u0,
+            w
+        )
+    )
+
+
+#==========================================================
+# Report
+#==========================================================
+
+def canonical_report(
+        t):
+
+    banner(
+        "Canonical Weitzenbock Report"
+    )
+
+    DeltaA, Delta0, R, At, L = (
+        canonical_weitzenbock(
+            t
+        )
+    )
+
+    defect = (
+        canonical_defect(
+            t
+        )
+    )
+
+    action, expect = (
+        canonical_kernel_action(
+            t
+        )
+    )
+
+    print()
+
+    print("||At||")
+
+    print(
+        np.linalg.norm(
+            At
+        )
+    )
+
+    print()
+
+    print("||At*At||")
+
+    print(
+        np.linalg.norm(
+            Delta0
+        )
+    )
+
+    print()
+
+    print("||Curvature||")
+
+    print(
+        np.linalg.norm(
+            R
+        )
+    )
+
+    print()
+
+    print("Canonical defect")
+
+    print(
+        defect
+    )
+
+    print()
+
+    print("||ΔAu0||")
+
+    print(
+        action
+    )
+
+    print()
+
+    print("<u0,ΔAu0>")
+
+    print(
+        expect
+    )
+
+    vals = np.linalg.eigvalsh(
+        DeltaA
+    )
+
+    print()
+
+    print("Min eigenvalue")
+
+    print(vals[0])
+
+    print()
+
+    print("Max eigenvalue")
+
+    print(vals[-1])
+
+    return (
+        DeltaA,
+        Delta0,
+        R,
+        At
+    )
+
+
+#==========================================================
+# Scan
+#==========================================================
+
+def canonical_scan(
+        tmin=-2,
+        tmax=2,
+        samples=101):
+
+    banner(
+        "Canonical Weitzenbock Scan"
+    )
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    defects=[]
+    action=[]
+    curvature=[]
+
+    for tt in ts:
+
+        try:
+
+            DeltaA, Delta0, R, At, L = (
+                canonical_weitzenbock(
+                    tt
+                )
+            )
+
+            defects.append(
+                canonical_defect(
+                    tt
+                )
+            )
+
+            a,e = (
+                canonical_kernel_action(
+                    tt
+                )
+            )
+
+            action.append(
+                a
+            )
+
+            curvature.append(
+                np.linalg.norm(
+                    R
+                )
+            )
+
+        except Exception:
+
+            defects.append(
+                np.nan
+            )
+
+            action.append(
+                np.nan
+            )
+
+            curvature.append(
+                np.nan
+            )
+
+    plt.figure(
+        figsize=(8,4)
+    )
+
+    plt.plot(
+        ts,
+        defects,
+        label="Defect"
+    )
+
+    plt.plot(
+        ts,
+        action,
+        label="||ΔAu0||"
+    )
+
+    plt.plot(
+        ts,
+        curvature,
+        label="Curvature"
+    )
+
+    plt.grid(True)
+
+    plt.legend()
+
+    plt.xlabel("t")
+
+    plt.title(
+        "Canonical Weitzenbock Identity"
+    )
+
+    plt.show()
+
+
+#==========================================================
+# Test
+#==========================================================
+
+DeltaA, Delta0, R, At = (
+    canonical_report(
+        PARAM.t
+    )
+)
+
+canonical_scan()
+
+banner(
+    "Part22A : Spectral Gap Verification"
+)
+
+def gap_verification(
+        t0=0.35,
+        t1=0.45,
+        samples=400):
+
+    ts = np.linspace(
+        t0,
+        t1,
+        samples
+    )
+
+    gaps = []
+
+    for tt in ts:
+
+        L = build_stopping_operator(
+            tt
+        )
+
+        vals = np.sort(
+            np.linalg.eigvalsh(L)
+        )
+
+        gap = vals[1] - vals[0]
+
+        gaps.append(gap)
+
+    gaps = np.array(gaps)
+
+    print()
+    print("Minimum gap")
+    print(np.min(gaps))
+
+    print()
+    print("Maximum gap")
+    print(np.max(gaps))
+
+    plt.figure(figsize=(8,4))
+    plt.plot(ts, gaps)
+    plt.grid(True)
+    plt.xlabel("t")
+    plt.ylabel("gap")
+    plt.title("Spectral Gap")
+    plt.show()
+
+    return ts, gaps
+
+    banner(
+    "Part22B : Z2 Holonomy Verification"
+)
+
+def continuous_sign_phase(
+        t0,
+        t1,
+        steps=2000):
+
+    ts = np.linspace(
+        t0,
+        t1,
+        steps
+    )
+
+    L0 = build_stopping_operator(
+        ts[0]
+    )
+
+    _, u_prev = stopping_kernel_vector(
+        L0
+    )
+
+    u_init = u_prev.copy()
+
+    flips = 0
+
+    for tt in ts[1:]:
+
+        L = build_stopping_operator(
+            tt
+        )
+
+        _, u = stopping_kernel_vector(
+            L
+        )
+
+        ov = np.vdot(
+            u_prev,
+            u
+        )
+
+        if ov.real < 0:
+
+            u = -u
+            flips += 1
+
+        u_prev = u
+
+    phase = np.angle(
+        np.vdot(
+            u_init,
+            u_prev
+        )
+    )
+
+    print()
+    print("Phase")
+    print(phase)
+
+    print()
+    print("Sign flips")
+    print(flips)
+
+    return phase, flips
+
+
+    banner(
+    "Part22C : Berry Phase Comparison"
+)
+
+def compare_berry_phase(
+        t0=0.35,
+        t1=0.45):
+
+    phi_old = berry_phase(
+        t0,
+        t1
+    )
+
+    phi_new, flips = (
+        continuous_sign_phase(
+            t0,
+            t1
+        )
+    )
+
+    print()
+    print("Old phase")
+    print(phi_old)
+
+    print()
+    print("Tracked phase")
+    print(phi_new)
+
+    print()
+    print("Difference")
+    print(phi_old - phi_new)
+
+#==========================================================
+# Part23 : Stopping Criticality and Gap Scaling
+#==========================================================
+
+banner(
+    "Part23 : Stopping Criticality and Gap Scaling"
+)
+
+
+def stopping_criticality_scan(
+        tmin=-2.0,
+        tmax=2.0,
+        samples=400,
+        verbose=False):
+
+    ts = np.linspace(
+        tmin,
+        tmax,
+        samples
+    )
+
+    gaps = []
+    at_norms = []
+    delta_norms = []
+    curvatures = []
+
+    for t in ts:
+
+        gap = np.nan
+        at_norm = np.nan
+        delta_norm = np.nan
+        curvature_norm = np.nan
+
+        try:
+
+            #--------------------------------------
+            # stopping operator
+            #--------------------------------------
+            L = build_stopping_operator(t)
+
+            vals, vecs = np.linalg.eigh(L)
+
+            idx = np.argsort(vals)
+            vals = vals[idx]
+            vecs = vecs[:, idx]
+
+            u0 = vecs[:, 0]
+
+            #--------------------------------------
+            # spectral gap
+            #--------------------------------------
+            if len(vals) >= 2:
+                gap = vals[1] - vals[0]
+
+            #--------------------------------------
+            # canonical connection
+            #--------------------------------------
+            At, Ltmp, dL = stopping_connection(t)
+
+            at_norm = np.linalg.norm(At)
+
+            #--------------------------------------
+            # curvature
+            #--------------------------------------
+            Curv = canonical_curvature(
+                At,
+                Ltmp
+            )
+
+            curvature_norm = np.linalg.norm(
+                Curv
+            )
+
+            #--------------------------------------
+            # canonical Weitzenbock operator
+            #--------------------------------------
+            Delta0 = canonical_rough_laplacian(
+                At
+            )
+
+            DeltaA = (
+                Delta0
+                +
+                Curv
+            )
+
+            delta_norm = np.linalg.norm(
+                DeltaA @ u0
+            )
+
+        except Exception as e:
+
+            if verbose:
+                print()
+                print("Exception at t =", t)
+                print(type(e))
+                print(e)
+
+        #--------------------------------------
+        # append exactly once
+        #--------------------------------------
+        gaps.append(gap)
+        at_norms.append(at_norm)
+        delta_norms.append(delta_norm)
+        curvatures.append(curvature_norm)
+
+    gaps = np.array(gaps)
+    at_norms = np.array(at_norms)
+    delta_norms = np.array(delta_norms)
+    curvatures = np.array(curvatures)
+
+    #--------------------------------------
+    # sanity check
+    #--------------------------------------
+    print()
+    print("Lengths")
+    print(
+        len(ts),
+        len(gaps),
+        len(at_norms),
+        len(delta_norms),
+        len(curvatures)
+    )
+
+    #--------------------------------------
+    # Report
+    #--------------------------------------
+    print()
+    print("Minimum gap")
+    print(np.nanmin(gaps))
+
+    print()
+    print("Maximum gap")
+    print(np.nanmax(gaps))
+
+    print()
+    print("Maximum ||At||")
+    print(np.nanmax(at_norms))
+
+    print()
+    print("Maximum ||ΔAu0||")
+    print(np.nanmax(delta_norms))
+
+    print()
+    print("Maximum curvature")
+    print(np.nanmax(curvatures))
+
+    #--------------------------------------
+    # Plot
+    #--------------------------------------
+    fig, ax = plt.subplots(
+        figsize=(10, 6)
+    )
+
+    ax.plot(
+        ts,
+        gaps,
+        label="Gap"
+    )
+
+    ax.plot(
+        ts,
+        at_norms,
+        label="||At||"
+    )
+
+    ax.plot(
+        ts,
+        delta_norms,
+        label="||ΔAu0||"
+    )
+
+    ax.plot(
+        ts,
+        curvatures,
+        label="Curvature"
+    )
+
+    ax.set_xlabel("t")
+    ax.set_ylabel("Magnitude")
+    ax.set_title(
+        "Stopping Criticality"
+    )
+
+    ax.grid(True)
+    ax.legend()
+
+    plt.show()
+
+    return (
+        ts,
+        gaps,
+        at_norms,
+        delta_norms,
+        curvatures
+    )
+
+
+#==========================================================
+# Gap scaling exponent
+#==========================================================
+
+def fit_gap_scaling(
+        gaps,
+        values,
+        vmax=np.inf):
+
+    mask = (
+        np.isfinite(gaps)
+        &
+        np.isfinite(values)
+        &
+        (gaps > 1e-12)
+        &
+        (values > 1e-12)
+        &
+        (values < vmax)
+    )
+
+    if np.sum(mask) < 5:
+        print()
+        print("Not enough data.")
+        return np.nan
+
+    x = np.log(gaps[mask])
+    y = np.log(values[mask])
+
+    a, b = np.polyfit(
+        x,
+        y,
+        1
+    )
+
+    alpha = -a
+
+    print()
+    print("Scaling exponent α")
+    print(alpha)
+
+    plt.figure(
+        figsize=(6, 5)
+    )
+
+    plt.scatter(
+        x,
+        y,
+        s=12
+    )
+
+    xx = np.linspace(
+        x.min(),
+        x.max(),
+        200
+    )
+
+    plt.plot(
+        xx,
+        a * xx + b
+    )
+
+    plt.xlabel("log gap")
+    plt.ylabel("log value")
+    plt.grid(True)
+    plt.show()
+
+    return alpha
+
+
+#==========================================================
+# Execute
+#==========================================================
+
+print("before call")
+
+(
+    ts,
+    gaps,
+    at_norms,
+    delta_norms,
+    curvatures
+) = stopping_criticality_scan(
+    tmin=-2.0,
+    tmax=2.0,
+    samples=400,
+    verbose=True
+)
+
+print("after call")
+
+
+alpha_A = fit_gap_scaling(
+    gaps,
+    at_norms,
+    vmax=1e5
+)
+
+alpha_D = fit_gap_scaling(
+    gaps,
+    delta_norms,
+    vmax=1e5
+)
+
+alpha_C = fit_gap_scaling(
+    gaps,
+    curvatures,
+    vmax=1e5
+)
+
+#==========================================================
+# Part24 : Local Critical Exponent Verification
+#==========================================================
+
+banner(
+    "Part24 : Local Critical Exponent Verification"
+)
+
+
+def local_gap_scaling(
+        ts,
+        gaps,
+        values,
+        window=10,
+        name="Observable"):
+
+    #--------------------------------------
+    # minimum gap index
+    #--------------------------------------
+    imin = np.nanargmin(gaps)
+
+    i0 = max(
+        0,
+        imin - window
+    )
+
+    i1 = min(
+        len(gaps),
+        imin + window + 1
+    )
+
+    idx = np.arange(
+        i0,
+        i1
+    )
+
+    g = gaps[idx]
+    v = values[idx]
+    tloc = ts[idx]
+
+    mask = (
+        np.isfinite(g)
+        &
+        np.isfinite(v)
+        &
+        (g > 1e-14)
+        &
+        (v > 1e-14)
+    )
+
+    g = g[mask]
+    v = v[mask]
+    tloc = tloc[mask]
+
+    print()
+    print("================================================")
+    print(name)
+    print("================================================")
+
+    print()
+    print("Minimum-gap location")
+    print(ts[imin])
+
+    print()
+    print("Local sample size")
+    print(len(g))
+
+    if len(g) < 5:
+        print()
+        print("Not enough local data.")
+        return np.nan
+
+    #--------------------------------------
+    # local log-log fit
+    #--------------------------------------
+    x = np.log(g)
+    y = np.log(v)
+
+    a, b = np.polyfit(
+        x,
+        y,
+        1
+    )
+
+    alpha = -a
+
+    print()
+    print("Local scaling exponent α")
+    print(alpha)
+
+    #--------------------------------------
+    # plots
+    #--------------------------------------
+    fig, ax = plt.subplots(
+        figsize=(6,5)
+    )
+
+    ax.scatter(
+        x,
+        y,
+        s=30
+    )
+
+    xx = np.linspace(
+        x.min(),
+        x.max(),
+        200
+    )
+
+    ax.plot(
+        xx,
+        a*xx + b
+    )
+
+    ax.set_xlabel(
+        "log gap"
+    )
+
+    ax.set_ylabel(
+        f"log {name}"
+    )
+
+    ax.set_title(
+        f"{name} : α = {alpha:.4f}"
+    )
+
+    ax.grid(True)
+
+    plt.show()
+
+    return alpha
+
+    #==========================================================
+# Critical locations
+#==========================================================
+
+print()
+print("Minimum gap")
+print(
+    ts[np.nanargmin(gaps)],
+    np.nanmin(gaps)
+)
+
+print()
+print("Maximum ||At||")
+print(
+    ts[np.nanargmax(at_norms)],
+    np.nanmax(at_norms)
+)
+
+print()
+print("Maximum ||ΔAu0||")
+print(
+    ts[np.nanargmax(delta_norms)],
+    np.nanmax(delta_norms)
+)
+
+print()
+print("Maximum curvature")
+print(
+    ts[np.nanargmax(curvatures)],
+    np.nanmax(curvatures)
+)
+
+alpha_A_local = local_gap_scaling(
+    ts,
+    gaps,
+    at_norms,
+    window=10,
+    name="||At||"
+)
+
+alpha_D_local = local_gap_scaling(
+    ts,
+    gaps,
+    delta_norms,
+    window=10,
+    name="||ΔAu0||"
+)
+
+alpha_C_local = local_gap_scaling(
+    ts,
+    gaps,
+    curvatures,
+    window=10,
+    name="Curvature"
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+^^^
+結果
+ーーー
+============================================================
+Loop–Tree Theory Numerical Verification
+============================================================
+
+Version : 2.0
+
+Tree order : 20
+Parameter t : 0.35
+Tolerance : 1e-08
+
+Environment initialized.
+
+============================================================
+Part 2 : Tree Coefficients
+============================================================
+
+Number of coefficients
+20
+
+First coefficient
+-1.0664714027834634
+
+Last coefficient
+-0.35528100233929216
+
+============================================================
+Tree coefficients
+============================================================
+
+r_ 1 = -1.066471402783463e+00
+r_ 3 = -5.500647069620487e-01
+r_ 5 = -4.779372496542604e-01
+r_ 7 = -4.495821467988221e-01
+r_ 9 = -4.327931180395920e-01
+r_11 = -4.206902249368566e-01
+r_13 = -4.111227250039035e-01
+r_15 = -4.031929138652866e-01
+r_17 = -3.964307157804740e-01
+r_19 = -3.905495808574287e-01
+r_21 = -3.853579383991136e-01
+r_23 = -3.807201871149294e-01
+r_25 = -3.765365613984780e-01
+r_27 = -3.727315179062653e-01
+r_29 = -3.692465251181405e-01
+r_31 = -3.660353561642438e-01
+r_33 = -3.630609005087329e-01
+r_35 = -3.602929406262271e-01
+r_37 = -3.577065635839095e-01
+r_39 = -3.552810023392922e-01
+
+
+============================================================
+Part 3 : Loop Completed Function
+============================================================
+
+============================================================
+Completed Function
+============================================================
+
+z = (0.2+0.1j)
+
+P(z)
+(0.7385007426696881-0.9134841283626314j)
+
+R(z)
+(-0.2141999972458182-0.11289195608965111j)
+
+Completed
+(0.5092491436131734-0.7998117750836875j)
+
+dlogF/dz
+(-4.532216547978889+1.5005446004142755j)
+
+dlogF/dt
+(1.4034143148795613-1.3930960214023904j)
+
+============================================================
+Part 4 : Connection and Curvature
+============================================================
+
+ω_z
+(-4.532216547978889+1.5005446004142755j)
+
+ω_t
+(1.4034143148795613-1.3930960214023904j)
+
+============================================================
+Flatness Test
+============================================================
+
+z = (0.2+0.1j)
+Curvature = (1.1102230246251565e-10+0j)
+|Ω| = 1.1102230246251565e-10
+
+z = (0.3+0.2j)
+Curvature = -5.551115123125783e-10j
+|Ω| = 5.551115123125783e-10
+
+z = (0.4+0.15j)
+Curvature = (3.3306690738754696e-10+1.6653345369377348e-10j)
+|Ω| = 3.7238012298709093e-10
+
+z = (0.5+0.1j)
+Curvature = (-4.440892098500626e-10+4.440892098500626e-10j)
+|Ω| = 6.2803698347351e-10
+
+z = (0.6+0.2j)
+Curvature = (-1.1102230246251565e-10+0j)
+|Ω| = 1.1102230246251565e-10
+
+Maximum curvature
+6.2803698347351e-10
+
+
+============================================================
+Part 5 : Loop Geometry
+============================================================
+
+============================================================
+Holonomy
+============================================================
+
+Loop Integral
+(3.972984216294654e-17-5.834362940687621e-18j)
+
+Holonomy
+(1-5.834362940687621e-18j)
+
+|Holonomy|
+1.0
+
+Phase
+-5.834362940687621e-18
+
+
+============================================================
+Holonomy Scan
+============================================================
+
+
+
+============================================================
+Part 6 : Loop Operator
+============================================================
+
+============================================================
+Loop Operator
+============================================================
+
+Generator norm
+2.924038303442689
+
+Generator rank
+20
+
+Unitary error
+8.795830829312055e-16
+
+Trace
+(16.011707310584818-9.341811175001312e-17j)
+
+Determinant
+(0.9999999999999998-1.166872588137524e-16j)
+
+Eigenvalues
+(0.4149965814062851+0.9098229703745108j)
+(0.5598525221313161+0.8285922721478913j)
+(0.6698342277690335+0.7425106782458164j)
+(0.7582398393516278+0.6519757250235761j)
+(0.8300521694603982+0.5576857501981601j)
+(0.8877546276071624+0.4603169790069313j)
+(0.9327607779687362+0.3604959515489175j)
+(0.9659290070185974+0.2588071741665348j)
+(0.9877879183299649+0.15580445565308312j)
+(0.998645984249287+0.052021131694473276j)
+(0.9986459842492863-0.05202113169447232j)
+(0.9877879183299649-0.15580445565308387j)
+(0.965929007018597-0.2588071741665354j)
+(0.9327607779687354-0.36049595154891734j)
+(0.8877546276071627-0.46031697900693214j)
+(0.41499658140628476-0.9098229703745107j)
+(0.8300521694603991-0.5576857501981607j)
+(0.7582398393516289-0.6519757250235765j)
+(0.669834227769033-0.742510678245817j)
+(0.5598525221313155-0.8285922721478902j)
+
+
+============================================================
+Part 7 : Stopping Operator
+============================================================
+
+============================================================
+Stopping Operator
+============================================================
+
+Ground eigenvalue
+-1.1004807630310112
+
+Kernel dimension
+0
+
+Spectral gap
+0.07582211698049197
+
+Operator norm
+5.419373271289143
+
+Trace
+13.283899034491974
+
+Projector rank
+0
+
+Pseudo inverse norm
+17.926602423799157
+
+
+============================================================
+Part 8 : Loop–Tree Interaction
+============================================================
+
+============================================================
+Loop–Tree Interaction
+============================================================
+
+Commutator norm
+1.1911552265066159
+
+Relative commutator
+0.04914782438651558
+
+Kernel preservation
+0.0
+
+Operator preservation
+1.1911552265066156
+
+Generator norm
+2.924038303442689
+
+============================================================
+Interaction Scan
+============================================================
+/tmp/ipykernel_2682/485220517.py:303: RuntimeWarning: invalid value encountered in scalar multiply
+  poch(1-u,2*k+1)
+/tmp/ipykernel_2682/485220517.py:308: IntegrationWarning: The occurrence of roundoff error is detected, which prevents 
+  the requested tolerance from being achieved.  The error may be 
+  underestimated.
+  value,error = quad(
+
+
+============================================================
+Part 9 : Connection Matrix
+============================================================
+
+============================================================
+Connection Matrix
+============================================================
+
+Gamma norm
+2.924038303442689
+
+Gamma rank
+20
+
+Compatibility
+1.2311744464319376
+
+Corrected norm
+5.427255904558324
+
+Curvature norm
+2.6679345944006947
+
+Connection eigenvalues
+(5.551115123125783e-17+1.1428572812519653j)
+(5.551115123125783e-17-1.1428572812519653j)
+(5.204170427930421e-17+0.9765885235520497j)
+(5.204170427930421e-17-0.9765885235520497j)
+(-6.938893903907228e-18+0.8368108208839804j)
+(-6.938893903907228e-18-0.8368108208839804j)
+(1.5178830414797062e-17+0.05204462356220342j)
+(1.5178830414797062e-17-0.05204462356220342j)
+(6.938893903907228e-18+0.15644180232041247j)
+(6.938893903907228e-18-0.15644180232041247j)
+(-2.7755575615628914e-17+0.261787098122119j)
+(-2.7755575615628914e-17-0.261787098122119j)
+0.3687995416758544j
+-0.3687995416758544j
+(2.7755575615628914e-17+0.4783522224830086j)
+(2.7755575615628914e-17-0.4783522224830086j)
+(2.7755575615628914e-17+0.7101872001069086j)
+(2.7755575615628914e-17-0.7101872001069086j)
+0.5915951025985973j
+-0.5915951025985973j
+
+
+
+============================================================
+Part10 : Loop–Tree Curvature
+============================================================
+
+============================================================
+Loop–Tree Curvature
+============================================================
+
+Curvature norm
+1.2311744464319379
+
+Curvature energy
+1.5157905175469883
+
+Curvature rank
+20
+
+Spectral radius
+1.1400193241607626
+
+Bianchi defect
+0.0
+
+
+============================================================
+Curvature Scan
+============================================================
+
+
+============================================================
+Part11 : Non-Abelian Loop–Tree Gauge Connection
+============================================================
+
+============================================================
+Gauge Connection
+============================================================
+
+||Az||
+21.549998113970275
+
+||At||
+8.475146269201273
+
+Curvature norm
+1.2311744464319379
+
+Curvature energy
+1.5157905175469886
+
+Curvature rank
+20
+
+Spectral radius
+1.1400193241607632
+
+
+============================================================
+Gauge Curvature Scan
+============================================================
+
+
+Curvature kernel dimension
+0
+
+============================================================
+Part12 : Stopping Kernel and Curvature Coupling
+============================================================
+
+============================================================
+Stopping Curvature Coupling
+============================================================
+
+Ground eigenvalue
+-0.07582211698049184
+
+||F u0||
+0.2933758206039224
+
+<u0,Fu0>
+-1.1796119636642288e-16
+
+Angle (rad)
+1.5707963267948961
+
+Angle (deg)
+89.99999999999997
+
+
+============================================================
+Stopping Curvature Scan
+============================================================
+
+
+============================================================
+Part13 : Holonomy and Stopping Leakage
+============================================================
+
+============================================================
+Holonomy and Leakage
+============================================================
+kernel L shape = (20, 20)
+vals shape = (20,)
+vecs shape = (20, 20)
+u0 shape = (20,)
+
+||Gamma u0||
+0.7683586264124275
+
+Gamma leakage
+0.7683586264124275
+
+Gamma parallel
+7.070640594137437e-18
+
+||F u0||
+0.2933758206039224
+
+Curvature leakage
+0.2933758206039224
+
+Curvature parallel
+1.165242730448074e-16
+
+Holonomy displacement
+0.7388561527688776
+
+<u0,Uu0>
+(0.7270457927577866+0j)
+
+
+============================================================
+Part14 : Stopping Kernel Bundle
+============================================================
+
+============================================================
+Stopping Kernel Bundle
+============================================================
+
+Ground eigenvalue
+-1.1004807630310112
+
+Spectral gap
+0.07582211698049197
+
+Kernel speed
+29.433317466435188
+
+Berry connection
+-29.417012782228895
+
+Leakage rate
+0.97955911007979
+
+<u0,u0'>
+-29.417012782228895
+
+============================================================
+Kernel Bundle Scan
+============================================================
+
+
+============================================================
+Part15 : Covariant Transport of Stopping Kernel
+============================================================
+
+============================================================
+Stopping Kernel Transport
+============================================================
+
+||u0'||
+29.433317466435188
+
+||Du0/Dt||
+0.0
+
+Connection norm
+40.12734626353679
+
+Connection energy
+1610.20391815378
+
+Connection radius
+29.412363693527645
+
+<u0,Du0>
+0.0
+
+============================================================
+Transport Scan
+============================================================
+
+
+============================================================
+Part16 : Holonomy of Stopping Kernel Bundle
+============================================================
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995885
+
+<u0,Uu0>
+(0.9559851883665822+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.2966978652886658
+
+============================================================
+Holonomy Scan
+============================================================
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499958
+
+<u0,Uu0>
+(1+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.0
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999577
+
+<u0,Uu0>
+(0.999956858590725+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.009288854533418786
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995885
+
+<u0,Uu0>
+(0.999827445978746+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.01857708380009505
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999579
+
+<u0,Uu0>
+(0.9996117970064561+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.027864062645047788
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999583
+
+<u0,Uu0>
+(0.999309969727672+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.03714916613674654
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.9989220453822428+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.04643176967883178
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.9984481283606504+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.05571124912166522
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999592
+
+<u0,Uu0>
+(0.9978883461584517+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.06498698087387533
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995885
+
+<u0,Uu0>
+(0.9972428493206841+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.07425834201372059
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499959
+
+<u0,Uu0>
+(0.9965118113762703+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.08352471040034265
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999578
+
+<u0,Uu0>
+(0.9956954287623303+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.09278546478481493
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999581
+
+<u0,Uu0>
+(0.9947939207386602+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.10203998492101853
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999577
+
+<u0,Uu0>
+(0.9938075292921852+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.11128765167631713
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999585
+
+<u0,Uu0>
+(0.9927365190316652+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.12052784714196069
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999574
+
+<u0,Uu0>
+(0.9915811770725161+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.129759954743216
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499957
+
+<u0,Uu0>
+(0.9903418129119959+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.13898335934925724
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999578
+
+<u0,Uu0>
+(0.98901875829463+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.14819744738266458
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499957
+
+<u0,Uu0>
+(0.9876123670681375+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.15740160692867702
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999575
+
+<u0,Uu0>
+(0.9861230150298023+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.16659522784398317
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999581
+
+<u0,Uu0>
+(0.9845510997634954+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.1757777018652183
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999574
+
+<u0,Uu0>
+(0.9828970404672472+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.18494842271698675
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999581
+
+<u0,Uu0>
+(0.9811612777717742+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.19410678621948352
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999589
+
+<u0,Uu0>
+(0.9793442735496914+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.20325219039563866
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499957
+
+<u0,Uu0>
+(0.9774465107158401+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.21238403557780133
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995725
+
+<u0,Uu0>
+(0.9754684930186881+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.2215017245138903
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995725
+
+<u0,Uu0>
+(0.9734107448228428+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.23060466247306696
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999577
+
+<u0,Uu0>
+(0.9712738108830445+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.23969225735077382
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999584
+
+<u0,Uu0>
+(0.9690582561095101+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.24876391977331883
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999566
+
+<u0,Uu0>
+(0.9667646653248938+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.257819063201718
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.9643936430130127+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.26685710403504403
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999578
+
+<u0,Uu0>
+(0.9619458130593844+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.27587746171304256
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999569
+
+<u0,Uu0>
+(0.9594218184837902+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.2848795588181476
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499957
+
+<u0,Uu0>
+(0.9568223211650205+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.2938628211767477
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.9541480015579159+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.30282667795978946
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999579
+
+<u0,Uu0>
+(0.9513995584028793+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.3117705617826097
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999578
+
+<u0,Uu0>
+(0.9485777084279943+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.3206939088040316
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999578
+
+<u0,Uu0>
+(0.9456831860440127+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.32959615882466786
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999568
+
+<u0,Uu0>
+(0.9427167430322103+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.3384767553844409
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999578
+
+<u0,Uu0>
+(0.9396791482254736+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.3473351458592408
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499958
+
+<u0,Uu0>
+(0.9365711871826129+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.3561707815567825
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999587
+
+<u0,Uu0>
+(0.9333936618562749+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.36498311781156645
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999587
+
+<u0,Uu0>
+(0.930147390254407+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.3737716140789433
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.9268332060957091+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.38253573402830665
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999587
+
+<u0,Uu0>
+(0.9234519584590566+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.3912749456352807
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999575
+
+<u0,Uu0>
+(0.9200045114271813+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.39998872127303925
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999574
+
+<u0,Uu0>
+(0.9164917437248441+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.40867653780259144
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999577
+
+<u0,Uu0>
+(0.9129145483515995+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.41733787666206645
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499957
+
+<u0,Uu0>
+(0.9092738322093996+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.42597222395503154
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999576
+
+<u0,Uu0>
+(0.9055705157252841+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.4345790705377188
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499958
+
+<u0,Uu0>
+(0.9018055324692723+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.44315791210521627
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999578
+
+<u0,Uu0>
+(0.8979798287677503+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.4517082492765686
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999576
+
+<u0,Uu0>
+(0.8940943633124978+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.46022958767881267
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999582
+
+<u0,Uu0>
+(0.8901501067656241+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.4687214380298325
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999581
+
+<u0,Uu0>
+(0.8861480413605799+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.47718331622013344
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.8820891604994764+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.48561474339341054
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999582
+
+<u0,Uu0>
+(0.8779744683469446+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.4940152460259764
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995885
+
+<u0,Uu0>
+(0.8738049794207432+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5023843560049632
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995805
+
+<u0,Uu0>
+(0.8695817181792861+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5107216107053182
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.47213595499957
+
+<u0,Uu0>
+(0.8653057186064362+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5190265530655628
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999577
+
+<u0,Uu0>
+(0.8609780237936626+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5272987316623003
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.8565996855197998+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.535537700783426
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999579
+
+<u0,Uu0>
+(0.8521717638287213+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5437430205000864
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.8476953266050581+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5519142567372985
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995885
+
+<u0,Uu0>
+(0.8431714491482453+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5600509813432344
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999578
+
+<u0,Uu0>
+(0.838601213745052+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5681527721571875
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999582
+
+<u0,Uu0>
+(0.8339857092409446+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5762192130761634
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999594
+
+<u0,Uu0>
+(0.8293260306103418+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.584249894120081
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999579
+
+<u0,Uu0>
+(0.8246232785261265+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.5922444114955806
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999582
+
+<u0,Uu0>
+(0.8198785589286041+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6002023676584359
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995725
+
+<u0,Uu0>
+(0.8150929825940613+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6081233713744948
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999588
+
+<u0,Uu0>
+(0.8102676647032324+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6160070377792287
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999564
+
+<u0,Uu0>
+(0.8054037244098843+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6238529884357552
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999576
+
+<u0,Uu0>
+(0.8005022844097109+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6316608513914548
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999574
+
+<u0,Uu0>
+(0.795564470509746+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6394302612330052
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999585
+
+<u0,Uu0>
+(0.7905914111985957+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6471608591399864
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999573
+
+<u0,Uu0>
+(0.7855842372176255+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6548522929369283
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999585
+
+<u0,Uu0>
+(0.7805440811333435+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6625042171437987
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999586
+
+<u0,Uu0>
+(0.7754720769112355+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6701162930249752
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.472135954999587
+
+<u0,Uu0>
+(0.7703693594912043+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6776881886366264
+
+============================================================
+Stopping Bundle Holonomy
+============================================================
+
+Holonomy norm
+4.4721359549995885
+
+<u0,Uu0>
+(0.7652370643648856+0j)
+
+Berry phase
+0.0
+
+Displacement
+0.6852195788725176
+
+
+============================================================
+Part17 : Curvature of Stopping Kernel Bundle
+============================================================
+
+============================================================
+Stopping Bundle Curvature
+============================================================
+
+||Pdot||
+0.9986250967524154
+
+Curvature norm
+0.9986250967524155
+
+Curvature energy
+0.997252083863771
+
+Curvature rank
+2
+
+Spectral radius
+0.7061345777767047
+
+
+============================================================
+Stopping Bundle Curvature Scan
+============================================================
+
+
+============================================================
+Part18 : Geometric Phase and Curvature Flux
+============================================================
+
+============================================================
+Geometric Phase Report
+============================================================
+/tmp/ipykernel_2682/485220517.py:5300: DeprecationWarning: `trapz` is deprecated. Use `trapezoid` instead, or one of the numerical integration functions in `scipy.integrate`.
+  return np.trapz(
+
+t0
+0.35
+
+t1
+0.44999999999999996
+
+Curvature flux
+0.01867303943527219
+
+Holonomy displacement
+0.013202759418710311
+
+sin(Phi)
+0.018671954294151128
+
+Berry phase
+3.141592653589793
+
+Relative error
+0.29290961134978827
+
+============================================================
+Geometric Phase Scan
+============================================================
+
+
+
+
+============================================================
+Part19 : Berry Holonomy and Topological Charge
+============================================================
+
+============================================================
+Topological Report
+============================================================
+
+t0
+0.35
+
+t1
+0.44999999999999996
+
+Integrated Berry phase
+7.374051266048159e-14j
+
+Endpoint phase
+0.0
+
+Topological charge
+1.1736167096046136e-14j
+
+2πQ
+7.374051266048159e-14j
+
+============================================================
+Topological Scan
+============================================================
+
+
+
+============================================================
+Part20 : Global Consistency Verification
+============================================================
+
+============================================================
+Global Consistency Report
+============================================================
+
+Correlation(gap, curvature)
+-0.18346690281130287
+
+Correlation(gap, leakage)
+0.7633113834746934
+
+Correlation(curvature, leakage)
+0.10480399390154288
+
+Correlation(curvature, Berry)
+0.13687174302278454
+
+Correlation(curvature, topology)
+0.35230419489222536j
+
+Maximum leakage
+4.796758714977798
+
+Maximum curvature
+57.49363373621948
+
+Maximum spectral gap
+3.489106149547794
+
+============================================================
+Global Consistency Scan
+============================================================
+
+
+
+
+
+============================================================
+Stopping Kernel Global Score
+============================================================
+2.0883574889593244
+
+============================================================
+Part21 : Stopping Hodge Decomposition
+============================================================
+
+============================================================
+Stopping Hodge Report
+============================================================
+
+Kernel dimension
+0
+
+Orthogonality
+0.0
+
+Completeness
+0.0
+
+Reconstruction
+0.0
+
+Kernel energy
+0.0
+
+Image energy
+1.0
+
+Total
+1.0
+
+============================================================
+Stopping Hodge Scan
+============================================================
+
+
+
+============================================================
+Part22 : Stopping Weitzenböck Identity
+============================================================
+
+============================================================
+Stopping Weitzenböck Report
+============================================================
+
+||L²||
+10.553263459341172
+
+||Γ*Γ||
+2.6679345944006947
+
+||Curvature||
+1.2311744464319379
+
+Curvature ratio
+0.4614710004570033
+
+Weitzenböck defect
+10.326994853734016
+
+Minimum eigenvalue
+-0.8222308532600674
+
+Maximum eigenvalue
+1.3661463395759643
+
+Ground eigenvalue
+-0.07582211698049184
+
+||ΔWu0||
+0.7804823089959558
+
+<u0,ΔWu0>
+0.590374978782392
+
+============================================================
+Stopping Weitzenböck Scan
+============================================================
+
+
+============================================================
+Part22.5 : Canonical Weitzenbock Identity
+============================================================
+
+============================================================
+Canonical Weitzenbock Report
+============================================================
+
+||At||
+40.12734626353679
+
+||At*At||
+1005.1390021385916
+
+||Curvature||
+0.5645997227218759
+
+Canonical defect
+1005.1126186780896
+
+||ΔAu0||
+868.9326412442771
+
+<u0,ΔAu0>
+866.3201770799586
+
+Min eigenvalue
+0.2052227572088767
+
+Max eigenvalue
+876.1129679984112
+
+============================================================
+Canonical Weitzenbock Scan
+============================================================
+
+
+============================================================
+Part22A : Spectral Gap Verification
+============================================================
+
+============================================================
+Part23 : Stopping Criticality and Gap Scaling
+============================================================
+before call
+
+Lengths
+400 400 400 400 400
+
+Minimum gap
+0.03399989939960246
+
+Maximum gap
+13.855030937174035
+
+Maximum ||At||
+2104.9288116684097
+
+Maximum ||ΔAu0||
+4428888.603778242
+
+Maximum curvature
+119.79473106430686
+
+after call
+
+Scaling exponent α
+0.11678762052422145
+
+
+Scaling exponent α
+-0.007354893982906923
+
+
+Scaling exponent α
+0.04262720508173876
+
+
+============================================================
+Part24 : Local Critical Exponent Verification
+============================================================
+
+Minimum gap
+-0.17543859649122817 0.03399989939960246
+
+Maximum ||At||
+0.06516290726817031 2104.9288116684097
+
+Maximum ||ΔAu0||
+0.06516290726817031 4428888.603778242
+
+Maximum curvature
+0.6666666666666665 119.79473106430686
+
+================================================
+||At||
+================================================
+
+Minimum-gap location
+-0.17543859649122817
+
+Local sample size
+21
+
+Local scaling exponent α
+0.030797691092227426
+
+
+================================================
+||ΔAu0||
+================================================
+
+Minimum-gap location
+-0.17543859649122817
+
+Local sample size
+21
+
+Local scaling exponent α
+0.7239157470818397
+
+
+================================================
+Curvature
+================================================
+
+Minimum-gap location
+-0.17543859649122817
+
+Local sample size
+21
+
+Local scaling exponent α
+-0.046111360058172415

@@ -1,0 +1,1029 @@
+
+
+ーーーーーーーーーー
+以下、結果
+
+======================================================================
+H17 COMPLETE CONSTRUCTION
+=========================
+
+Constructed left multiplication matrices : 7
+
+======================================================================
+Section 1 complete
+==================
+
+Constructed L8,R8
+candidate generators : 21
+independent dimension : 14
+orthogonal dimension : 14
+
+Restricted g2 to imaginary part
+matrix size = (7, 7)
+====================
+
+Section 3
+Construct V_coh and H17
+=======================
+
+L matrix size = (7, 7)
+
+phi matrix size = (7, 7)
+
+Checking V_coh independence
+rank(V_coh) = 3
+
+Gram(V_coh)
+[[ 0.857143 -0.142857 -0.142857]
+[-0.142857  0.857143 -0.142857]
+[-0.142857 -0.142857  0.857143]]
+
+orthogonal dimension = 3
+
+dimension(H17) = 17
+
+Gram(H17) size = (17, 17)
+rank(H17) = 17
+
+Saved
+H17_basis.npy
+H17_gram.npy
+
+======================================================================
+H17 decomposition
+=================
+
+g2 dimension        : 14
+V_coh dimension     : 3
+H17 dimension       : 17
+
+H17 = g2 ⊕ V_coh
+
+======================================================================
+Section 3 complete
+==================
+
+======================================================================
+Section 4
+Lie bracket analysis
+====================
+
+Maximum closure error
+0.8944271909999161
+
+Average closure error
+0.1297568051921034
+
+Maximum relative leakage
+1.0
+
+Average relative leakage
+0.18685121107266436
+
+Antisymmetry error
+0.0
+
+======================================================================
+Projection analysis finished
+============================
+
+saved
+H17_lie_projection.npy
+H17_closure_error.npy
+H17_relative_error.npy
+
+======================================================================
+Section 4 complete
+==================
+
+======================================================================
+Section 5
+Jacobi identity
+===============
+
+Checking projected Jacobi identity...
+Maximum projected Jacobi error = 1.2412670766236366e-16
+
+Checking matrix Jacobi identity...
+Maximum matrix Jacobi error = 3.1401849173675503e-16
+
+Checking Jacobi projection residual...
+Maximum Jacobi projection residual = 1.8129866073473578e-16
+
+Saved : Jacobi_report.txt
+
+======================================================================
+Summary
+=======
+
+✓ Ambient matrix Lie algebra satisfies Jacobi.
+✓ Projected coefficients define a Lie algebra.
+
+======================================================================
+Section 5 complete
+==================
+
+======================================================================
+Section 6
+Krylov stopping structure
+=========================
+
+minimum tau = 1
+maximum tau = 4
+average tau = 2.764705882352941
+
+maximum leakage = 1.0
+average leakage = 0.8235294117647058
+correlation(tau,leak) = 0.33432392491786583
+
+Saved
+krylov_tau.npy
+krylov_leak.npy
+Krylov_report.txt
+
+======================================================================
+Section 6 complete
+==================
+
+======================================================================
+Section 7
+Hecke-Satake Fusion Analysis
+============================
+
+Jordan commutativity error
+0.0
+
+Maximum fusion leakage
+1.0
+
+Average fusion leakage
+0.766917526156416
+
+Fusion matrices constructed.
+
+======================================================================
+Fusion spectra
+==============
+
+Fusion matrix 0
+[-0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 1
+[-0. -0. -0. -0. -0. -0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 2
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 3
+[-0. -0. -0. -0. -0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 4
+[-0. -0. -0. -0. -0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 5
+[-0. -0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 6
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 7
+[-0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 8
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 9
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 10
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 11
+[-0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 12
+[-0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 13
+[-0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 14
+[-0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303  0.205738  0.205738  0.205738
+0.205738  0.205738  0.205738  0.771517]
+
+Fusion matrix 15
+[-0.182574 -0.182574 -0.182574 -0.182574 -0.138993 -0.138993 -0.138993 -0.138993 -0.121716 -0.031264  0.182574  0.199851  0.199851
+0.199851  0.199851  0.243432  0.761561]
+
+Fusion matrix 16
+[-0.223607 -0.223607 -0.223607 -0.111803 -0.111803 -0.111803 -0.111803 -0.076467 -0.074536 -0.        0.186339  0.186339  0.186339
+0.186339  0.223607  0.223607  0.747287]
+
+======================================================================
+Band structure analysis
+=======================
+
+Generator 0
+row  0 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(0)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(0)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(0)]
+
+Generator 1
+row  1 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row  9 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(1)]
+row 15 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row 16 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+
+Generator 2
+row  2 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(2)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(2)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(2)]
+
+Generator 3
+row  3 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 10 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(3)]
+row 15 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row 16 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+
+Generator 4
+row  4 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row  6 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(4)]
+row 15 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row 16 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+
+Generator 5
+row  5 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row  8 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(5)]
+row 15 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row 16 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+
+Generator 6
+row  4 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row  6 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(6)]
+row 15 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row 16 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+
+Generator 7
+row  7 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(7)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(7)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(7)]
+
+Generator 8
+row  5 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row  8 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(8)]
+row 15 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row 16 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+
+Generator 9
+row  1 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row  9 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(9)]
+row 15 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row 16 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+
+Generator 10
+row  3 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 10 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(10)]
+row 15 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row 16 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+
+Generator 11
+row 11 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(11)]
+
+Generator 12
+row 12 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(12)]
+
+Generator 13
+row 13 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(13)]
+
+Generator 14
+row  0 : nnz= 1 band= 0 indices=[np.int64(0)]
+row  1 : nnz= 1 band= 0 indices=[np.int64(1)]
+row  2 : nnz= 1 band= 0 indices=[np.int64(2)]
+row  3 : nnz= 1 band= 0 indices=[np.int64(3)]
+row  4 : nnz= 1 band= 0 indices=[np.int64(4)]
+row  5 : nnz= 1 band= 0 indices=[np.int64(5)]
+row  6 : nnz= 1 band= 0 indices=[np.int64(6)]
+row  7 : nnz= 1 band= 0 indices=[np.int64(7)]
+row  8 : nnz= 1 band= 0 indices=[np.int64(8)]
+row  9 : nnz= 1 band= 0 indices=[np.int64(9)]
+row 10 : nnz= 1 band= 0 indices=[np.int64(10)]
+row 11 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 12 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 13 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(14)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(15)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(16)]
+
+Generator 15
+row  0 : nnz= 1 band= 0 indices=[np.int64(0)]
+row  1 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row  2 : nnz= 1 band= 0 indices=[np.int64(2)]
+row  3 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row  4 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row  5 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row  6 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row  7 : nnz= 1 band= 0 indices=[np.int64(7)]
+row  8 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row  9 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row 10 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row 11 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 12 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 13 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(15)]
+row 15 : nnz= 2 band= 1 indices=[np.int64(14), np.int64(15)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(16)]
+
+Generator 16
+row  0 : nnz= 1 band= 0 indices=[np.int64(0)]
+row  1 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row  2 : nnz= 1 band= 0 indices=[np.int64(2)]
+row  3 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row  4 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row  5 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row  6 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row  7 : nnz= 1 band= 0 indices=[np.int64(7)]
+row  8 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row  9 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row 10 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row 11 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 12 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 13 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(16)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(16)]
+row 16 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+
+======================================================================
+Band statistics
+===============
+
+maximum bandwidth
+8.0
+
+average bandwidth
+0.6885813148788927
+
+maximum nnz
+3.0
+
+average nnz
+0.643598615916955
+
+======================================================================
+SU(2)-like detector
+===================
+
+generator 0 score = 0.0
+generator 1 score = 0.0
+generator 2 score = 0.0
+generator 3 score = 0.0
+generator 4 score = 0.0
+generator 5 score = 0.0
+generator 6 score = 0.0
+generator 7 score = 0.0
+generator 8 score = 0.0
+generator 9 score = 0.0
+generator 10 score = 0.0
+generator 11 score = 0.0
+generator 12 score = 0.0
+generator 13 score = 0.275304
+generator 14 score = 1.0
+generator 15 score = 0.689112
+generator 16 score = 0.678029
+
+======================================================================
+Coherent sector
+===============
+
+indices = [14, 15, 16]
+
+coherent tensor shape
+(3, 3, 3)
+
+coherent structure constants
+[[[ 0.771517 -0.       -0.      ]
+[-0.       -0.154303 -0.      ]
+[-0.       -0.       -0.154303]]
+
+[[-0.       -0.154303 -0.      ]
+[-0.154303  0.730297 -0.      ]
+[-0.       -0.       -0.182574]]
+
+[[-0.       -0.       -0.154303]
+[-0.       -0.       -0.182574]
+[-0.154303 -0.182574  0.67082 ]]]
+
+Saved
+H17_jordan_structure.npy
+H17_jordan_leak.npy
+H17_fusion_matrices.npy
+H17_fusion_spectra.npy
+H17_su2_scores.npy
+H17_coherent_fusion.npy
+Hecke_Satake_report.txt
+
+======================================================================
+Section 7 complete
+==================
+
+Loaded Jordan structure
+shape = (17, 17, 17)
+====================
+
+Section 8
+Verlinde-Satake analysis
+========================
+
+Coherent fusion tensor
+[[[ 0.771517 -0.       -0.      ]
+[-0.       -0.154303 -0.      ]
+[-0.       -0.       -0.154303]]
+
+[[-0.       -0.154303 -0.      ]
+[-0.154303  0.730297 -0.      ]
+[-0.       -0.       -0.182574]]
+
+[[-0.       -0.       -0.154303]
+[-0.       -0.       -0.182574]
+[-0.154303 -0.182574  0.67082 ]]]
+
+======================================================================
+Fusion commutativity
+====================
+
+maximum commutator = 0.20203050891044236
+
+======================================================================
+Fusion spectra
+==============
+
+F_0
+[-0.154303 -0.154303  0.771517]
+
+F_1
+[-0.182574 -0.031264  0.761561]
+
+F_2
+[-0.076467 -0.        0.747287]
+
+======================================================================
+A_n detector
+============
+
+Generator 0
+A_2 error = 1.43095
+A_3 error = 1.422759
+A_4 error = 1.543085
+A_5 error = 1.949289
+A_6 error = 2.321348
+A_7 error = 2.610972
+A_8 error = 2.830631
+A_9 error = 2.998082
+
+Generator 1
+A_2 error = 1.315937
+A_3 error = 1.394227
+A_4 error = 1.557384
+A_5 error = 1.979723
+A_6 error = 2.357158
+A_7 error = 2.648943
+A_8 error = 2.869624
+A_9 error = 3.037619
+
+Generator 2
+A_2 error = 1.361218
+A_3 error = 1.494776
+A_4 error = 1.665863
+A_5 error = 2.073499
+A_6 error = 2.440053
+A_7 error = 2.724995
+A_8 error = 2.941228
+A_9 error = 3.106187
+
+======================================================================
+Clebsch-Gordan detector
+=======================
+
+Generator 0
+nnz per row = [1, 1, 1]
+
+Generator 1
+nnz per row = [1, 2, 1]
+
+Generator 2
+nnz per row = [1, 1, 3]
+
+======================================================================
+Perron-Frobenius analysis
+=========================
+
+Generator 0
+spectral radius = 0.771517
+PF vector =
+[1. 0. 0.]
+
+Generator 1
+spectral radius = 0.761561
+PF vector =
+[0.198579 0.980085 0.      ]
+
+Generator 2
+spectral radius = 0.747287
+PF vector =
+[0.196668 0.2327   0.952456]
+
+Saved
+coherent_tensor.npy
+coherent_fusion_matrices.npy
+coherent_spectra.npy
+Verlinde_report.txt
+
+======================================================================
+Section 8 complete
+==================
+
+======================================================================
+Section 9
+Quantum Satake / Hecke degeneration
+===================================
+
+Fusion shape
+(3, 3, 3)
+
+======================================================================
+q-SU(2) eigenvalue detector
+===========================
+
+Fusion generator 0
+eigenvalues
+[ 0.771517 -0.154303 -0.154303]
+estimated q = 0.9999999999999996
+fit error = 3.2849987737154547
+
+Fusion generator 1
+eigenvalues
+[-0.031264  0.761561 -0.182574]
+estimated q = 0.9999999999999996
+fit error = 3.228528377491059
+
+Fusion generator 2
+eigenvalues
+[ 0.747287 -0.       -0.076467]
+estimated q = 0.9999999999999996
+fit error = 3.143406454992095
+
+======================================================================
+Hecke quadratic relation
+========================
+
+Generator 0
+Hecke error = 1.4386548895257898
+
+Generator 1
+Hecke error = 1.4522092013982868
+
+Generator 2
+Hecke error = 1.47760492911015
+
+======================================================================
+Quantum dimension recurrence
+============================
+
+Generator 0
+dimension error = 1.0952380952380951
+
+Generator 1
+dimension error = 0.9904761904761906
+
+Generator 2
+dimension error = 0.9941527919620207
+
+======================================================================
+Degeneration index
+==================
+
+q = 0.9999999999999996 degeneration = 4.440892098500627e-16
+q = 0.9999999999999996 degeneration = 4.440892098500627e-16
+q = 0.9999999999999996 degeneration = 4.440892098500627e-16
+
+Saved
+q_estimates.npy
+hecke_errors.npy
+quantum_dimension_errors.npy
+degeneration_index.npy
+Quantum_Satake_report.txt
+
+======================================================================
+Section 9 complete
+==================
+
+======================================================================
+Construct H42
+=============
+
+Sym^2 dimension = 28
+Sym^2_0 dimension = 28
+H42 dimension = 42
+Saved H42_basis.npy
+===================
+
+# Construct H42
+
+Sym^2 dimension = 28
+Sym^2_0 dimension = 28
+scalar sector dimension = 1
+
+H42 dimension = 42
+
+# Saved H42_basis.npy
+
+Section 10
+42 -> 17 projection / dissipative kernel
+========================================
+
+H17 shape
+(17, 7, 7)
+
+H42 shape
+(42, 7, 7)
+
+======================================================================
+Projection
+==========
+
+stable contribution
+[1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       0.92582
+0.       0.       0.       0.       0.       0.       0.92582  0.       0.       0.       0.       0.       0.327327 0.       0.
+0.       0.       0.92582  0.       0.       0.       0.327327 0.       0.       0.327327 0.       0.327327]
+
+dissipative contribution
+[0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.377964
+
+1. ```
+     1.       1.       1.       1.       1.       0.377964 1.       1.       1.       1.       1.       0.944911 1.       1.
+   ```
+2. ```
+     1.       0.377964 1.       1.       1.       0.944911 1.       1.       0.944911 1.       0.944911]
+   ```
+
+======================================================================
+Dimension analysis
+==================
+
+stable dimension = 21
+dissipative dimension = 28
+
+dissipation ratios
+[0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.289898
+
+1. ```
+     1.       1.       1.       1.       1.       0.289898 1.       1.       1.       1.       1.       0.742716 1.       1.
+   ```
+2. ```
+     1.       0.289898 1.       1.       1.       0.742716 1.       1.       0.742716 1.       0.742716]
+   ```
+
+tau dimension mismatch
+
+======================================================================
+Dissipative spectrum
+====================
+
+[0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.377964
+
+1. ```
+     1.       1.       1.       1.       1.       0.377964 1.       1.       1.       1.       1.       0.944911 1.       1.
+   ```
+2. ```
+     1.       0.377964 1.       1.       1.       0.944911 1.       1.       0.944911 1.       0.944911]
+   ```
+
+Saved
+H42_H17_stable.npy
+H42_dissipative.npy
+dissipation_ratio.npy
+Dissipative_kernel_report.txt
+
+======================================================================
+Section 10 complete
+===================
+
+======================================================================
+H42 coordinate decomposition
+============================
+
+rank H17 = 17
+rank K25 = 25
+
+# saved
+
+Section 11
+17 stable kernel / 25 dissipative coupling
+==========================================
+
+K25 -> H17
+max = 5.291502622129181
+mean = 2.2787185332567415
+
+H17 -> K25
+max = 3.7416573867739418
+mean = 2.3085614626929294
+
+directionality index
+max = 3485895516755960.0
+mean = 778393595947327.1
+
+Saved
+K25_to_H17.npy
+H17_to_K25.npy
+directionality_index.npy
+
+======================================================================
+Section 11 complete
+===================
+
+Searching files...
+
+Found:
+H17_data/H42_basis.npy
+Loading from
+H17_data
+
+H42 shape
+(42, 7, 7)
+P17 shape
+(42, 42)
+PK shape
+(42, 42)
+Coordinate matrix
+(49, 42)
+========
+
+Section 12
+H17 attractor / K25 dissipation flow
+====================================
+
+Loading data
+
+H42
+(42, 7, 7)
+P17
+(42, 42)
+PK
+(42, 42)
+
+Building H42 coordinate map
+B42
+(49, 42)
+
+H17 dimension
+17
+
+K25 dimension
+25
+
+======================================================================
+Attractor index
+===============
+
+mean alpha = 0.40855817266952277
+min alpha = 4.254818544606253e-17
+max alpha = 0.9999999999999987
+
+======================================================================
+Schur dissipation
+=================
+
+mean Sigma = 0.4047619047619048
+max Sigma = 1.0000000000000009
+
+======================================================================
+K25 entropy
+===========
+
+mean entropy = -1.317147248640208e-16
+max entropy = 4.540464176503521e-15
+
+Saved
+
+H17_attractor_index.npy
+H17_Schur_dissipation.npy
+K25_entropy.npy
+Attractor_Dissipation_report.txt
+
+======================================================================
+Section 12 complete
+===================
+
+======================================================================
+Section 13
+Effective H17 dynamics
+K25 renormalized closure
+========================
+
+H42 (42, 7, 7)
+
+Coordinate map
+(49, 42)
+
+Effective shape
+(42, 42, 42)
+
+======================================================================
+Closure
+=======
+
+max leakage 2.6021812847795224e-33
+mean leakage 1.1852134208911422e-35
+
+======================================================================
+Spectrum
+========
+
+radius 6.661338147750939e-16
+mean 1.7707008223224448e-18
+
+======================================================================
+Effective flow
+==============
+
+start 0.7867341920980152
+end 0.0
+
+Saved
+
+H17_effective_operator.npy
+H17_closure_leak.npy
+H17_effective_spectrum.npy
+H17_effective_flow.npy
+Section13_report.txt
+
+======================================================================
+Section 13 complete
+===================
+
+======================================================================
+Section 13.5
+H42 structure constant renormalization
+17 stable / 25 dissipative
+==========================
+
+H42 basis
+(42, 7, 7)
+
+Building structure tensor
+Tensor
+(42, 42, 42)
+
+H17
+17
+K25
+25
+
+======================================================================
+H17 Lie closure
+===============
+
+max leakage 0.8164965809277263
+mean leakage 0.11825471544969239
+
+======================================================================
+Effective bracket
+=================
+
+dissipative coupling
+max 0.8164965809277263
+mean 0.11825471544969239
+
+======================================================================
+Jacobi H17
+==========
+
+max Jacobi 3.3306690738754696e-16
+mean Jacobi 1.3095028744079856e-17
+
+Saved
+
+H42_structure_tensor.npy
+H17_effective_bracket.npy
+H17_closure_leak_real.npy
+H17_Jacobi.npy
+Section13_5_report.txt
+
+======================================================================
+Section 13.5 complete
+=====================
+
+======================================================================
+Section 14
+Renormalized H17 algebra
+K25 feedback correction
+=======================
+
+Structure tensor
+(42, 42, 42)
+
+H17
+17
+K25
+25
+
+======================================================================
+Renormalized closure
+====================
+
+Jacobi max = 3.0
+Jacobi mean = 0.06351593639248698
+
+======================================================================
+Effective spectrum
+==================
+
+largest = 2.1998402840627502
+
+Saved
+
+H17_renormalized_bracket.npy
+H17_renormalized_Jacobi.npy
+H17_renormalized_spectrum.npy
+Section14_report.txt
+
+======================================================================
+Section 14 complete
+===================
+
+======================================================================
+Section 15
+Feshbach-Schur renormalized H17 algebra
+=======================================
+
+Loading data
+
+Tensor
+(42, 42, 42)
+
+H17 = 17
+K25 = 25
+
+B
+(17, 17, 17)
+Leak tensor
+(17, 17, 25)
+
+Building K25 dissipative kernel
+
+D_K rank
+25
+
+Renormalizing bracket
+
+======================================================================
+Jacobi test
+===========
+
+Jacobi max = 3.0
+Jacobi mean = 0.0596664842573326
+
+======================================================================
+Residual K25 leakage
+====================
+
+max leakage = 0.5
+mean leakage = 0.2188571711399709
+
+======================================================================
+Effective spectrum
+==================
+
+largest = 2.1416590199120926
+
+Saved
+
+H17_Feshbach_bracket.npy
+H17_Feshbach_Jacobi.npy
+H17_Feshbach_spectrum.npy
+K25_dissipative_operator.npy
+Section15_report.txt
+
+======================================================================
+Section 15 complete
+===================

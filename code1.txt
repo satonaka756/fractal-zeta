@@ -1,0 +1,6472 @@
+###############################################################
+
+#
+
+# H17_complete.py
+
+#
+
+# Section 1
+
+# 基本設定
+
+# Fano平面
+
+# Octonion左乗法
+
+# 基本ユーティリティ
+
+#
+
+###############################################################
+
+import os
+import numpy as np
+
+np.set_printoptions(
+precision=6,
+suppress=True,
+linewidth=140
+)
+
+###############################################################
+
+# 保存先
+
+###############################################################
+
+SAVE_DIR = "./H17_data"
+
+os.makedirs(SAVE_DIR, exist_ok=True)
+
+print("="*70)
+print("H17 COMPLETE CONSTRUCTION")
+print("="*70)
+print()
+
+###############################################################
+
+# Fano plane
+
+###############################################################
+
+#
+
+# (a,b,c) は
+
+#
+
+# e_a e_b =  e_c
+
+# e_b e_c =  e_a
+
+# e_c e_a =  e_b
+
+#
+
+# を表す
+
+#
+
+FANO_LINES = [
+
+```
+(1,2,4),
+(2,3,5),
+(3,4,6),
+(4,5,7),
+(5,6,1),
+(6,7,2),
+(7,1,3)
+```
+
+]
+
+###############################################################
+
+# Octonion imaginary multiplication
+
+###############################################################
+
+def octonion_product_imag(i,j):
+
+```
+"""
+e_i e_j
+
+imaginary part only
+
+return:
+    length-7 vector
+"""
+
+result = np.zeros(7)
+
+if i==j:
+    return result
+
+for line in FANO_LINES:
+
+    a,b,c = line
+
+    table = [
+
+        (a,b,c,+1),
+        (b,c,a,+1),
+        (c,a,b,+1),
+
+        (b,a,c,-1),
+        (c,b,a,-1),
+        (a,c,b,-1)
+
+    ]
+
+    for x,y,z,s in table:
+
+        if x==i and y==j:
+
+            result[z-1]=s
+
+            return result
+
+return result
+```
+
+###############################################################
+
+# Left multiplication matrix
+
+###############################################################
+
+def L_matrix(i):
+
+```
+"""
+Left multiplication
+
+    x -> e_i x
+
+restricted to imaginary octonions
+
+return 7x7 matrix
+"""
+
+M = np.zeros((7,7))
+
+for j in range(1,8):
+
+    M[:,j-1] = octonion_product_imag(i,j)
+
+return M
+```
+
+###############################################################
+
+# basic matrices
+
+###############################################################
+
+L = []
+
+for i in range(1,8):
+
+```
+L.append(L_matrix(i))
+```
+
+print("Constructed left multiplication matrices :",len(L))
+
+###############################################################
+
+# Symmetric traceless projector
+
+###############################################################
+
+def phi(J):
+
+```
+"""
+phi(J)
+
+symmetric traceless quadratic form
+"""
+
+JJ = J @ J
+
+S = (JJ + JJ.T)/2
+
+S = S - np.trace(S)/7 * np.eye(7)
+
+return S
+```
+
+###############################################################
+
+# Matrix utilities
+
+###############################################################
+
+def comm(A,B):
+
+```
+"""
+Lie bracket
+"""
+
+return A@B - B@A
+```
+
+def jordan(A,B):
+
+```
+"""
+Jordan product
+"""
+
+return (A@B + B@A)/2
+```
+
+###############################################################
+
+# Frobenius inner product
+
+###############################################################
+
+def inner(A,B):
+
+```
+return np.trace(A.T @ B)
+```
+
+def norm(A):
+
+```
+return np.sqrt(inner(A,A))
+```
+
+###############################################################
+
+# Independence test
+
+###############################################################
+
+def independent(candidate,basis,tol=1e-10):
+
+```
+"""
+check linear independence
+"""
+
+if len(basis)==0:
+
+    return True
+
+vec = candidate.reshape(-1)
+
+B = np.column_stack(
+
+    [x.reshape(-1) for x in basis]
+
+)
+
+proj = B @ np.linalg.pinv(B) @ vec
+
+err = np.linalg.norm(vec-proj)
+
+return err > tol
+```
+
+###############################################################
+
+# Projection
+
+###############################################################
+
+def gram_matrix(basis):
+
+```
+n=len(basis)
+
+G=np.zeros((n,n))
+
+for i in range(n):
+
+    for j in range(n):
+
+        G[i,j]=inner(basis[i],basis[j])
+
+return G
+```
+
+def project_to_basis(X,basis,Ginv):
+
+```
+rhs=np.array(
+
+    [inner(b,X) for b in basis]
+
+)
+
+return Ginv @ rhs
+```
+
+###############################################################
+print()
+print("="*70)
+print("Section 1 complete")
+print("="*70)
+print()
+
+###############################################################
+
+# Full octonion multiplication
+
+###############################################################
+
+def octonion_product(i, j):
+"""
+Basis:
+e0 = 1
+e1,...,e7 imaginary
+
+```
+Returns:
+    length-8 vector
+"""
+
+out = np.zeros(8)
+
+#
+# scalar multiplication
+#
+if i == 0:
+    out[j] = 1.0
+    return out
+
+if j == 0:
+    out[i] = 1.0
+    return out
+
+#
+# ei*ei = -1
+#
+if i == j:
+    out[0] = -1.0
+    return out
+
+#
+# Fano multiplication
+#
+for a, b, c in FANO_LINES:
+
+    table = [
+
+        (a, b, c, +1),
+        (b, c, a, +1),
+        (c, a, b, +1),
+
+        (b, a, c, -1),
+        (c, b, a, -1),
+        (a, c, b, -1)
+    ]
+
+    for x, y, z, s in table:
+        if i == x and j == y:
+            out[z] = s
+            return out
+
+return out
+```
+
+###############################################################
+
+# Left multiplication matrix
+
+###############################################################
+
+def left_matrix(i):
+
+```
+M = np.zeros((8, 8))
+
+for j in range(8):
+    M[:, j] = octonion_product(i, j)
+
+return M
+```
+
+###############################################################
+
+# Right multiplication matrix
+
+###############################################################
+
+def right_matrix(i):
+
+```
+M = np.zeros((8, 8))
+
+for j in range(8):
+    M[:, j] = octonion_product(j, i)
+
+return M
+```
+
+###############################################################
+
+# Construct all left/right multiplications
+
+###############################################################
+
+L8 = [left_matrix(i) for i in range(8)]
+R8 = [right_matrix(i) for i in range(8)]
+
+print("Constructed L8,R8")
+
+###############################################################
+
+# Construct derivation generators
+
+###############################################################
+
+candidates = []
+
+for i in range(1, 8):
+for j in range(i + 1, 8):
+
+```
+    D = (
+        comm(L8[i], L8[j])
+        + comm(L8[i], R8[j])
+        + comm(R8[i], R8[j])
+    )
+
+    if norm(D) > 1e-12:
+        candidates.append(D)
+```
+
+print("candidate generators :", len(candidates))
+
+###############################################################
+
+# Extract independent basis
+
+###############################################################
+
+g2_basis = []
+
+for X in candidates:
+if independent(X, g2_basis):
+g2_basis.append(X)
+
+print("independent dimension :", len(g2_basis))
+
+###############################################################
+
+# Gram-Schmidt orthogonalization
+
+###############################################################
+
+orth_basis = []
+
+for X in g2_basis:
+
+```
+Y = X.copy()
+
+for B in orth_basis:
+    c = inner(B, Y) / inner(B, B)
+    Y -= c * B
+
+n = norm(Y)
+
+if n > 1e-10:
+    orth_basis.append(Y / n)
+```
+
+g2_basis = orth_basis
+
+print("orthogonal dimension :", len(g2_basis))
+
+###############################################################
+
+# Restrict derivations to imaginary octonions
+
+###############################################################
+
+g2_basis = [X[1:, 1:] for X in g2_basis]
+
+print()
+print("Restricted g2 to imaginary part")
+print("matrix size =", g2_basis[0].shape)
+
+###############################################################
+
+#
+
+# Section 3
+
+#
+
+# Construct V_coh and H17
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 3")
+print("Construct V_coh and H17")
+print("="*70)
+
+###############################################################
+
+# sp(1) generators
+
+###############################################################
+
+J1 = L[0]
+J2 = L[1]
+J3 = L[3]      # e4
+
+print()
+print("L matrix size =", J1.shape)
+
+###############################################################
+
+# coherent quadratic forms
+
+###############################################################
+
+phi1 = phi(J1)
+phi2 = phi(J2)
+phi3 = phi(J3)
+
+Vcoh = [phi1, phi2, phi3]
+
+###############################################################
+
+# check dimensions
+
+###############################################################
+
+print()
+print("phi matrix size =", phi1.shape)
+
+###############################################################
+
+# check independence
+
+###############################################################
+
+print()
+print("Checking V_coh independence")
+
+rank = np.linalg.matrix_rank(
+np.column_stack(
+[X.reshape(-1) for X in Vcoh]
+)
+)
+
+print("rank(V_coh) =", rank)
+
+if rank != 3:
+raise RuntimeError("V_coh is not 3-dimensional")
+
+###############################################################
+
+# Gram matrix
+
+###############################################################
+
+GV = gram_matrix(Vcoh)
+
+print()
+print("Gram(V_coh)")
+print(np.round(GV, 6))
+
+###############################################################
+
+# Gram-Schmidt
+
+###############################################################
+
+Vbasis = []
+
+for X in Vcoh:
+
+```
+Y = X.copy()
+
+for B in Vbasis:
+    c = inner(B, Y) / inner(B, B)
+    Y -= c * B
+
+n = norm(Y)
+
+if n > 1e-12:
+    Vbasis.append(Y / n)
+```
+
+print()
+print("orthogonal dimension =", len(Vbasis))
+
+###############################################################
+
+# Save
+
+###############################################################
+
+np.save(
+os.path.join(SAVE_DIR, "Vcoh_basis.npy"),
+np.array(Vbasis)
+)
+
+###############################################################
+
+# Construct H17
+
+###############################################################
+
+H17_basis = []
+
+for X in g2_basis:
+H17_basis.append(X)
+
+for X in Vbasis:
+H17_basis.append(X)
+
+print()
+print("dimension(H17) =", len(H17_basis))
+
+if len(H17_basis) != 17:
+raise RuntimeError("H17 dimension error")
+
+###############################################################
+
+# Gram matrix
+
+###############################################################
+
+GH = gram_matrix(H17_basis)
+
+print()
+print("Gram(H17) size =", GH.shape)
+
+###############################################################
+
+# Rank
+
+###############################################################
+
+rankH = np.linalg.matrix_rank(GH)
+
+print("rank(H17) =", rankH)
+
+###############################################################
+
+# Save
+
+###############################################################
+
+np.save(
+os.path.join(SAVE_DIR, "H17_basis.npy"),
+np.array(H17_basis)
+)
+
+np.save(
+os.path.join(SAVE_DIR, "H17_gram.npy"),
+GH
+)
+
+print()
+print("Saved")
+print("   H17_basis.npy")
+print("   H17_gram.npy")
+
+###############################################################
+
+# Summary
+
+###############################################################
+
+print()
+print("="*70)
+print("H17 decomposition")
+print("="*70)
+
+print()
+print("g2 dimension        :", len(g2_basis))
+print("V_coh dimension     :", len(Vbasis))
+print("H17 dimension       :", len(H17_basis))
+print()
+print("H17 = g2 ⊕ V_coh")
+
+print()
+print("="*70)
+print("Section 3 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 4
+
+#
+
+# Lie bracket analysis on H17
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 4")
+print("Lie bracket analysis")
+print("="*70)
+
+###############################################################
+
+# Gram inverse
+
+###############################################################
+
+GH = gram_matrix(H17_basis)
+
+GHinv = np.linalg.inv(GH)
+
+###############################################################
+
+# containers
+
+###############################################################
+
+n = len(H17_basis)
+
+C = np.zeros((n,n,n))
+
+closure_error = np.zeros((n,n))
+
+relative_error = np.zeros((n,n))
+
+###############################################################
+
+# main loop
+
+###############################################################
+
+for i in range(n):
+
+```
+for j in range(n):
+
+    X = comm(H17_basis[i],H17_basis[j])
+
+    coeff = project_to_basis(
+        X,
+        H17_basis,
+        GHinv
+    )
+
+    Xproj = np.zeros((7,7))
+
+    for k in range(n):
+
+        Xproj += coeff[k]*H17_basis[k]
+
+    residual = X-Xproj
+
+    C[i,j,:]=coeff
+
+    closure_error[i,j]=norm(residual)
+
+    denom = norm(X)
+
+    if denom>1e-12:
+
+        relative_error[i,j]=closure_error[i,j]/denom
+```
+
+###############################################################
+
+# statistics
+
+###############################################################
+
+print()
+
+print("Maximum closure error")
+
+print(np.max(closure_error))
+
+print()
+
+print("Average closure error")
+
+print(np.mean(closure_error))
+
+print()
+
+print("Maximum relative leakage")
+
+print(np.max(relative_error))
+
+print()
+
+print("Average relative leakage")
+
+print(np.mean(relative_error))
+
+###############################################################
+
+# antisymmetry
+
+###############################################################
+
+anti = np.max(
+
+```
+np.abs(
+
+    C +
+
+    np.transpose(C,(1,0,2))
+
+)
+```
+
+)
+
+print()
+
+print("Antisymmetry error")
+
+print(anti)
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+
+```
+os.path.join(
+    SAVE_DIR,
+    "H17_lie_projection.npy"
+),
+
+C
+```
+
+)
+
+np.save(
+
+```
+os.path.join(
+    SAVE_DIR,
+    "H17_closure_error.npy"
+),
+
+closure_error
+```
+
+)
+
+np.save(
+
+```
+os.path.join(
+    SAVE_DIR,
+    "H17_relative_error.npy"
+),
+
+relative_error
+```
+
+)
+
+###############################################################
+
+# report
+
+###############################################################
+
+print()
+
+print("="*70)
+
+print("Projection analysis finished")
+
+print("="*70)
+
+print()
+
+print("saved")
+
+print("  H17_lie_projection.npy")
+
+print("  H17_closure_error.npy")
+
+print("  H17_relative_error.npy")
+
+print()
+
+###############################################################
+print("="*70)
+print("Section 4 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 5
+
+#
+
+# Jacobi identity verification
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 5")
+print("Jacobi identity")
+print("="*70)
+
+n = len(H17_basis)
+
+###############################################################
+
+# Part A
+
+# Jacobi using projected structure constants
+
+###############################################################
+
+print()
+print("Checking projected Jacobi identity...")
+
+max_proj_error = 0.0
+
+for i in range(n):
+for j in range(n):
+for k in range(n):
+
+```
+        term = np.zeros(n)
+
+        for m in range(n):
+
+            term += (
+                C[i,j,m] * C[m,k,:]
+                + C[j,k,m] * C[m,i,:]
+                + C[k,i,m] * C[m,j,:]
+            )
+
+        err = np.linalg.norm(term)
+
+        if err > max_proj_error:
+            max_proj_error = err
+```
+
+print("Maximum projected Jacobi error =", max_proj_error)
+
+###############################################################
+
+# Part B
+
+# Jacobi in the ambient matrix algebra
+
+###############################################################
+
+print()
+print("Checking matrix Jacobi identity...")
+
+max_matrix_error = 0.0
+
+for i in range(n):
+for j in range(n):
+for k in range(n):
+
+```
+        Xi = H17_basis[i]
+        Xj = H17_basis[j]
+        Xk = H17_basis[k]
+
+        J = (
+            comm(Xi, comm(Xj, Xk))
+            + comm(Xj, comm(Xk, Xi))
+            + comm(Xk, comm(Xi, Xj))
+        )
+
+        err = norm(J)
+
+        if err > max_matrix_error:
+            max_matrix_error = err
+```
+
+print("Maximum matrix Jacobi error =", max_matrix_error)
+
+###############################################################
+
+# Part C
+
+# Projection residual of Jacobi
+
+###############################################################
+
+print()
+print("Checking Jacobi projection residual...")
+
+max_residual = 0.0
+
+for i in range(n):
+for j in range(n):
+for k in range(n):
+
+```
+        Xi = H17_basis[i]
+        Xj = H17_basis[j]
+        Xk = H17_basis[k]
+
+        J = (
+            comm(Xi, comm(Xj, Xk))
+            + comm(Xj, comm(Xk, Xi))
+            + comm(Xk, comm(Xi, Xj))
+        )
+
+        coeff = project_to_basis(J, H17_basis, GHinv)
+
+        Jproj = np.zeros((7,7))
+
+        for a in range(n):
+            Jproj += coeff[a] * H17_basis[a]
+
+        residual = J - Jproj
+
+        err = norm(residual)
+
+        if err > max_residual:
+            max_residual = err
+```
+
+print("Maximum Jacobi projection residual =", max_residual)
+
+###############################################################
+
+# Save report
+
+###############################################################
+
+with open(os.path.join(SAVE_DIR, "Jacobi_report.txt"), "w") as f:
+
+```
+f.write("Jacobi verification\n")
+f.write("===================\n\n")
+
+f.write(f"Projected Jacobi error : {max_proj_error:e}\n")
+f.write(f"Matrix Jacobi error    : {max_matrix_error:e}\n")
+f.write(f"Projection residual    : {max_residual:e}\n")
+```
+
+print()
+print("Saved : Jacobi_report.txt")
+
+###############################################################
+
+# Summary
+
+###############################################################
+
+print()
+print("="*70)
+print("Summary")
+print("="*70)
+
+if max_matrix_error < 1e-12:
+print("✓ Ambient matrix Lie algebra satisfies Jacobi.")
+
+if max_proj_error < 1e-10:
+print("✓ Projected coefficients define a Lie algebra.")
+else:
+print("⚠ Projected coefficients DO NOT satisfy Jacobi.")
+
+print()
+print("="*70)
+print("Section 5 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 6
+
+#
+
+# Krylov stopping structure
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 6")
+print("Krylov stopping structure")
+print("="*70)
+
+###############################################################
+
+# Krylov basis generation
+
+###############################################################
+
+def krylov_basis(A, mmax=20):
+
+```
+n = A.shape[0]
+
+basis = [np.eye(n)]
+
+P = np.eye(n)
+
+dims = [1]
+
+for m in range(mmax):
+
+    P = A @ P
+
+    if independent(P, basis):
+        basis.append(P)
+
+    dims.append(len(basis))
+
+return basis, dims
+```
+
+###############################################################
+
+# Stopping index
+
+###############################################################
+
+def stopping_index(dims):
+
+```
+for m in range(len(dims) - 1):
+
+    if dims[m] == dims[m + 1]:
+        return m
+
+return len(dims) - 1
+```
+
+###############################################################
+
+# Compute stopping indices
+
+###############################################################
+
+tau_list = []
+krylov_dims = []
+
+for A in H17_basis:
+
+```
+_, dims = krylov_basis(A)
+
+tau = stopping_index(dims)
+
+tau_list.append(tau)
+krylov_dims.append(dims)
+```
+
+tau_array = np.array(tau_list)
+
+print()
+print("minimum tau =", np.min(tau_array))
+print("maximum tau =", np.max(tau_array))
+print("average tau =", np.mean(tau_array))
+
+###############################################################
+
+# Correlation with leakage
+
+###############################################################
+
+leak = np.max(relative_error, axis=1)
+
+print()
+print("maximum leakage =", np.max(leak))
+print("average leakage =", np.mean(leak))
+
+if np.std(tau_array) > 1e-12 and np.std(leak) > 1e-12:
+
+```
+corr = np.corrcoef(
+    tau_array,
+    leak
+)[0, 1]
+
+print("correlation(tau,leak) =", corr)
+```
+
+else:
+
+```
+corr = np.nan
+print("correlation undefined (zero variance)")
+```
+
+###############################################################
+
+# Save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"krylov_tau.npy"
+),
+tau_array
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"krylov_leak.npy"
+),
+leak
+)
+
+###############################################################
+
+# Text report
+
+###############################################################
+
+with open(
+os.path.join(
+SAVE_DIR,
+"Krylov_report.txt"
+),
+"w"
+) as f:
+
+```
+f.write("Krylov stopping analysis\n")
+f.write("========================\n\n")
+
+f.write(
+    f"minimum tau : {np.min(tau_array)}\n"
+)
+
+f.write(
+    f"maximum tau : {np.max(tau_array)}\n"
+)
+
+f.write(
+    f"average tau : {np.mean(tau_array):.6f}\n"
+)
+
+f.write(
+    f"maximum leakage : {np.max(leak):.12f}\n"
+)
+
+f.write(
+    f"average leakage : {np.mean(leak):.12f}\n"
+)
+
+f.write(
+    f"correlation : {corr}\n"
+)
+```
+
+print()
+print("Saved")
+print("   krylov_tau.npy")
+print("   krylov_leak.npy")
+print("   Krylov_report.txt")
+
+print()
+print("="*70)
+print("Section 6 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 7
+
+#
+
+# Hecke–Satake Fusion Analysis
+
+#
+
+# Jordan fusion algebra on H17
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 7")
+print("Hecke-Satake Fusion Analysis")
+print("="*70)
+
+###############################################################
+
+# basic data
+
+###############################################################
+
+n = len(H17_basis)
+
+GH = gram_matrix(H17_basis)
+GHinv = np.linalg.inv(GH)
+
+###############################################################
+
+# Jordan structure constants
+
+#
+
+# X_i ⋆ X_j = (X_i X_j + X_j X_i)/2
+
+#
+
+# X_i ⋆ X_j = Σ_k N[i,j,k] X_k
+
+#
+
+###############################################################
+
+N = np.zeros((n, n, n))
+
+fusion_residual = np.zeros((n, n))
+fusion_relative = np.zeros((n, n))
+
+for i in range(n):
+for j in range(n):
+
+```
+    X = jordan(
+        H17_basis[i],
+        H17_basis[j]
+    )
+
+    coeff = project_to_basis(
+        X,
+        H17_basis,
+        GHinv
+    )
+
+    Xproj = np.zeros_like(X)
+
+    for k in range(n):
+        Xproj += coeff[k] * H17_basis[k]
+
+    residual = X - Xproj
+
+    N[i, j, :] = coeff
+
+    fusion_residual[i, j] = norm(residual)
+
+    denom = norm(X)
+
+    if denom > 1e-12:
+        fusion_relative[i, j] = (
+            fusion_residual[i, j] / denom
+        )
+```
+
+###############################################################
+
+# commutativity check
+
+###############################################################
+
+comm_error = np.max(
+np.abs(
+N -
+np.transpose(N, (1, 0, 2))
+)
+)
+
+print()
+print("Jordan commutativity error")
+print(comm_error)
+
+###############################################################
+
+# closure statistics
+
+###############################################################
+
+print()
+print("Maximum fusion leakage")
+print(np.max(fusion_relative))
+
+print()
+print("Average fusion leakage")
+print(np.mean(fusion_relative))
+
+###############################################################
+
+# save structure constants
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_jordan_structure.npy"
+),
+N
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_jordan_leak.npy"
+),
+fusion_relative
+)
+
+###############################################################
+
+# fusion matrices
+
+#
+
+# (M_i)*{jk} = N*{i,j,k}
+
+#
+
+###############################################################
+
+fusion_matrices = []
+
+for i in range(n):
+
+```
+M = N[i, :, :]
+
+fusion_matrices.append(M)
+```
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_fusion_matrices.npy"
+),
+np.array(fusion_matrices)
+)
+
+print()
+print("Fusion matrices constructed.")
+
+###############################################################
+
+# spectral analysis
+
+###############################################################
+
+fusion_spectra = []
+
+print()
+print("="*70)
+print("Fusion spectra")
+print("="*70)
+
+for i, M in enumerate(fusion_matrices):
+
+```
+S = (M + M.T) / 2
+
+eig = np.linalg.eigvalsh(S)
+
+fusion_spectra.append(eig)
+
+print()
+print("Fusion matrix", i)
+print(np.round(eig, 6))
+```
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_fusion_spectra.npy"
+),
+np.array(fusion_spectra)
+)
+
+###############################################################
+
+# band structure analysis
+
+###############################################################
+
+tol = 1e-8
+
+bandwidth = np.zeros((n, n))
+nnz_count = np.zeros((n, n))
+
+print()
+print("="*70)
+print("Band structure analysis")
+print("="*70)
+
+for i in range(n):
+
+```
+print()
+print("Generator", i)
+
+M = np.abs(N[i, :, :])
+
+for j in range(n):
+
+    nz = np.where(
+        M[j] > tol
+    )[0]
+
+    nnz_count[i, j] = len(nz)
+
+    if len(nz) > 0:
+
+        bw = np.max(nz) - np.min(nz)
+
+        bandwidth[i, j] = bw
+
+        print(
+            f"row {j:2d} : "
+            f"nnz={len(nz):2d} "
+            f"band={bw:2.0f} "
+            f"indices={list(nz)}"
+        )
+```
+
+###############################################################
+
+# statistics
+
+###############################################################
+
+print()
+print("="*70)
+print("Band statistics")
+print("="*70)
+
+print()
+print("maximum bandwidth")
+print(np.max(bandwidth))
+
+print()
+print("average bandwidth")
+print(np.mean(bandwidth))
+
+print()
+print("maximum nnz")
+print(np.max(nnz_count))
+
+print()
+print("average nnz")
+print(np.mean(nnz_count))
+
+###############################################################
+
+# SU(2)-like tridiagonal detector
+
+###############################################################
+
+su2_score = np.zeros(n)
+
+print()
+print("="*70)
+print("SU(2)-like detector")
+print("="*70)
+
+for i in range(n):
+
+```
+score = 0.0
+total = 0.0
+
+M = np.abs(N[i, :, :])
+
+for j in range(n):
+
+    row = M[j]
+
+    total += np.sum(row)
+
+    for k in range(n):
+
+        if abs(k - j) <= 1:
+            score += row[k]
+
+if total > 1e-12:
+    su2_score[i] = score / total
+
+print(
+    "generator",
+    i,
+    "score =",
+    np.round(
+        su2_score[i],
+        6
+    )
+)
+```
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_su2_scores.npy"
+),
+su2_score
+)
+
+###############################################################
+
+# coherent sector only
+
+#
+
+# last three basis vectors:
+
+# g2 (14)
+
+# Vcoh (3)
+
+#
+
+###############################################################
+
+print()
+print("="*70)
+print("Coherent sector")
+print("="*70)
+
+coh_idx = list(
+range(
+n - len(Vbasis),
+n
+)
+)
+
+print()
+print("indices =", coh_idx)
+
+Ncoh = N[
+np.ix_(
+coh_idx,
+coh_idx,
+coh_idx
+)
+]
+
+print()
+print("coherent tensor shape")
+print(Ncoh.shape)
+
+print()
+print("coherent structure constants")
+
+print(
+np.round(
+Ncoh,
+6
+)
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_coherent_fusion.npy"
+),
+Ncoh
+)
+
+###############################################################
+
+# report
+
+###############################################################
+
+with open(
+os.path.join(
+SAVE_DIR,
+"Hecke_Satake_report.txt"
+),
+"w"
+) as f:
+
+```
+f.write(
+    "Hecke-Satake fusion analysis\n"
+)
+
+f.write(
+    "============================\n\n"
+)
+
+f.write(
+    f"Jordan commutativity error : "
+    f"{comm_error:e}\n"
+)
+
+f.write(
+    f"Maximum fusion leakage : "
+    f"{np.max(fusion_relative):.12f}\n"
+)
+
+f.write(
+    f"Average fusion leakage : "
+    f"{np.mean(fusion_relative):.12f}\n"
+)
+
+f.write(
+    f"Maximum bandwidth : "
+    f"{np.max(bandwidth):.6f}\n"
+)
+
+f.write(
+    f"Average bandwidth : "
+    f"{np.mean(bandwidth):.6f}\n"
+)
+
+f.write(
+    "\nSU(2)-like scores\n"
+)
+
+for i, s in enumerate(su2_score):
+
+    f.write(
+        f"{i:2d} : "
+        f"{s:.12f}\n"
+    )
+```
+
+print()
+print("Saved")
+print("   H17_jordan_structure.npy")
+print("   H17_jordan_leak.npy")
+print("   H17_fusion_matrices.npy")
+print("   H17_fusion_spectra.npy")
+print("   H17_su2_scores.npy")
+print("   H17_coherent_fusion.npy")
+print("   Hecke_Satake_report.txt")
+
+print()
+print("="*70)
+print("Section 7 complete")
+print("="*70)
+
+###############################################################
+
+# load Jordan structure from Section 7
+
+###############################################################
+
+Jstruct = np.load(
+os.path.join(
+SAVE_DIR,
+"H17_jordan_structure.npy"
+)
+)
+
+print()
+print("Loaded Jordan structure")
+print("shape =", Jstruct.shape)
+
+###############################################################
+
+#
+
+# Section 8
+
+#
+
+# Verlinde / Satake analysis
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 8")
+print("Verlinde-Satake analysis")
+print("="*70)
+
+###############################################################
+
+# coherent sector
+
+###############################################################
+
+coh = [14, 15, 16]
+r = len(coh)
+
+###############################################################
+
+# coherent tensor
+
+###############################################################
+
+Ncoh = np.zeros((r, r, r))
+
+for a, ia in enumerate(coh):
+for b, ib in enumerate(coh):
+for c, ic in enumerate(coh):
+
+```
+        Ncoh[a, b, c] = Jstruct[ia, ib, ic]
+```
+
+###############################################################
+
+# print tensor
+
+###############################################################
+
+print()
+print("Coherent fusion tensor")
+print(np.round(Ncoh, 6))
+
+###############################################################
+
+# coherent fusion matrices
+
+###############################################################
+
+Fcoh = []
+
+for a in range(r):
+
+```
+Fa = Ncoh[a]
+
+Fcoh.append(Fa)
+```
+
+###############################################################
+
+# commutativity
+
+###############################################################
+
+print()
+print("="*70)
+print("Fusion commutativity")
+print("="*70)
+
+max_comm = 0.0
+
+for a in range(r):
+for b in range(r):
+
+```
+    err = norm(
+        Fcoh[a] @ Fcoh[b]
+        -
+        Fcoh[b] @ Fcoh[a]
+    )
+
+    max_comm = max(max_comm, err)
+```
+
+print()
+print("maximum commutator =", max_comm)
+
+###############################################################
+
+# spectra
+
+###############################################################
+
+print()
+print("="*70)
+print("Fusion spectra")
+print("="*70)
+
+spectra = []
+
+for a, Fa in enumerate(Fcoh):
+
+```
+eig = np.linalg.eigvalsh(Fa)
+
+spectra.append(eig)
+
+print()
+print(f"F_{a}")
+print(np.round(eig, 6))
+```
+
+###############################################################
+
+# A_n detector
+
+###############################################################
+
+print()
+print("="*70)
+print("A_n detector")
+print("="*70)
+
+for a, Fa in enumerate(Fcoh):
+
+```
+eig = np.sort(
+    np.linalg.eigvalsh(Fa)
+)
+
+print()
+print(f"Generator {a}")
+
+for n in range(2, 10):
+
+    target = np.sort(
+
+        [
+            2*np.cos(
+                np.pi*k/(n+1)
+            )
+            for k in range(1, n+1)
+        ]
+
+    )
+
+    m = min(
+        len(eig),
+        len(target)
+    )
+
+    err = np.linalg.norm(
+        eig[:m]
+        -
+        target[:m]
+    )
+
+    print(
+        f"A_{n} error =",
+        round(err, 6)
+    )
+```
+
+###############################################################
+
+# Clebsch-Gordan detector
+
+###############################################################
+
+print()
+print("="*70)
+print("Clebsch-Gordan detector")
+print("="*70)
+
+for a, Fa in enumerate(Fcoh):
+
+```
+nnz = []
+
+for i in range(r):
+
+    idx = np.where(
+        np.abs(Fa[i]) > 1e-8
+    )[0]
+
+    nnz.append(len(idx))
+
+print()
+print(f"Generator {a}")
+print("nnz per row =", nnz)
+```
+
+###############################################################
+
+# Perron-Frobenius eigenvector
+
+###############################################################
+
+print()
+print("="*70)
+print("Perron-Frobenius analysis")
+print("="*70)
+
+for a, Fa in enumerate(Fcoh):
+
+```
+w, v = np.linalg.eigh(Fa)
+
+k = np.argmax(w)
+
+rho = w[k]
+
+pf = np.abs(v[:, k])
+
+print()
+print(f"Generator {a}")
+
+print(
+    "spectral radius =",
+    round(rho, 6)
+)
+
+print(
+    "PF vector ="
+)
+
+print(
+    np.round(pf, 6)
+)
+```
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"coherent_tensor.npy"
+),
+Ncoh
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"coherent_fusion_matrices.npy"
+),
+np.array(Fcoh)
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"coherent_spectra.npy"
+),
+np.array(spectra)
+)
+
+###############################################################
+
+# report
+
+###############################################################
+
+with open(
+os.path.join(
+SAVE_DIR,
+"Verlinde_report.txt"
+),
+"w"
+) as f:
+
+```
+f.write(
+    "Verlinde-Satake analysis\n"
+)
+
+f.write(
+    "========================\n\n"
+)
+
+f.write(
+    f"commutativity error = {max_comm:e}\n"
+)
+```
+
+print()
+print("Saved")
+print("   coherent_tensor.npy")
+print("   coherent_fusion_matrices.npy")
+print("   coherent_spectra.npy")
+print("   Verlinde_report.txt")
+
+print()
+print("="*70)
+print("Section 8 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 9
+
+#
+
+# Quantum Satake / Hecke degeneration analysis
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 9")
+print("Quantum Satake / Hecke degeneration")
+print("="*70)
+
+import numpy as np
+from scipy.optimize import minimize_scalar
+
+###############################################################
+
+# Load data
+
+###############################################################
+
+fusion = np.load(
+os.path.join(
+SAVE_DIR,
+"coherent_fusion_matrices.npy"
+)
+)
+
+spectra = np.load(
+os.path.join(
+SAVE_DIR,
+"coherent_spectra.npy"
+)
+)
+
+print()
+print("Fusion shape")
+print(fusion.shape)
+
+###############################################################
+
+# 9.1
+
+# q-SU(2) eigenvalue detector
+
+###############################################################
+
+print()
+print("="*70)
+print("q-SU(2) eigenvalue detector")
+print("="*70)
+
+def q_trace(q,n):
+
+```
+if abs(q-1)<1e-10:
+    return n
+
+return (
+    q**n-q**(-n)
+)/(q-q**(-1))
+```
+
+def q_character(q,n):
+
+```
+return q**n + q**(-n)
+```
+
+q_results=[]
+
+for i,F in enumerate(fusion):
+
+```
+eig=np.linalg.eigvals(F)
+
+eig=np.real_if_close(eig)
+
+print()
+print("Fusion generator",i)
+print("eigenvalues")
+print(eig)
+
+
+def error(x):
+
+    q=np.exp(x)
+
+    model=np.array(
+        [
+            q_character(q,0),
+            q_character(q,1),
+            q_character(q,2)
+        ]
+    )
+
+    model=np.sort(model)
+    data=np.sort(np.real(eig))
+
+    return np.linalg.norm(
+        model-data
+    )
+
+
+res=minimize_scalar(
+    error,
+    bounds=(-5,5),
+    method="bounded"
+)
+
+
+q=np.exp(res.x)
+
+print("estimated q =",q)
+print("fit error =",res.fun)
+
+
+q_results.append(
+    [
+        q,
+        res.fun
+    ]
+)
+```
+
+q_results=np.array(q_results)
+
+###############################################################
+
+# 9.2
+
+# Hecke quadratic relation
+
+#
+
+# (T-q)(T+q^-1)=0
+
+#
+
+###############################################################
+
+print()
+print("="*70)
+print("Hecke quadratic relation")
+print("="*70)
+
+hecke_errors=[]
+
+for i,F in enumerate(fusion):
+
+```
+q=q_results[i,0]
+
+
+H = (
+    F-q*np.eye(3)
+) @ (
+    F+(1/q)*np.eye(3)
+)
+
+
+err=np.linalg.norm(H)
+
+
+print()
+print("Generator",i)
+print("Hecke error =",err)
+
+
+hecke_errors.append(err)
+```
+
+###############################################################
+
+# 9.3
+
+# quantum dimension recurrence
+
+#
+
+# d_{n+1}d_{n-1}=d_n^2-1
+
+#
+
+###############################################################
+
+print()
+print("="*70)
+print("Quantum dimension recurrence")
+print("="*70)
+
+dimension_errors=[]
+
+for i,F in enumerate(fusion):
+
+```
+eig=np.sort(
+    np.abs(
+        np.linalg.eigvals(F)
+    )
+)
+
+
+if len(eig)==3:
+
+    d0,d1,d2=eig
+
+
+    err=abs(
+        d2*d0
+        -
+        (d1*d1-1)
+    )
+
+
+    print()
+    print("Generator",i)
+    print("dimension error =",err)
+
+
+    dimension_errors.append(err)
+```
+
+###############################################################
+
+# 9.4
+
+# degeneration index
+
+#
+
+# q=1 classical
+
+# q!=1 quantum deformation
+
+#
+
+###############################################################
+
+print()
+print("="*70)
+print("Degeneration index")
+print("="*70)
+
+degeneration=[]
+
+for q,err in q_results:
+
+```
+index=abs(
+    np.log(q)
+)
+
+degeneration.append(index)
+
+
+print(
+    "q =",
+    q,
+    "degeneration =",
+    index
+)
+```
+
+degeneration=np.array(degeneration)
+
+###############################################################
+
+# 9.5
+
+# report
+
+###############################################################
+
+report=os.path.join(
+SAVE_DIR,
+"Quantum_Satake_report.txt"
+)
+
+with open(report,"w") as f:
+
+```
+f.write(
+```
+
+"""
+Quantum Satake / Hecke degeneration report
+
+=========================================
+
+q estimates
+
+"""
+)
+
+```
+for i,(q,e) in enumerate(q_results):
+
+    f.write(
+        f"""
+```
+
+Generator {i}
+
+q = {q}
+
+fit error = {e}
+
+degeneration index =
+{abs(np.log(q))}
+
+"""
+)
+
+```
+f.write(
+```
+
+"""
+
+Hecke errors
+
+"""
+)
+
+```
+for i,e in enumerate(hecke_errors):
+
+    f.write(
+        f"""
+```
+
+Generator {i}
+
+error =
+{e}
+
+"""
+)
+
+```
+f.write(
+```
+
+"""
+
+Quantum dimension errors
+
+"""
+)
+
+```
+for i,e in enumerate(dimension_errors):
+
+    f.write(
+        f"""
+```
+
+Generator {i}
+
+error =
+{e}
+
+"""
+)
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"q_estimates.npy"
+),
+q_results
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"hecke_errors.npy"
+),
+np.array(hecke_errors)
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"quantum_dimension_errors.npy"
+),
+np.array(dimension_errors)
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"degeneration_index.npy"
+),
+degeneration
+)
+
+print()
+print("Saved")
+print("   q_estimates.npy")
+print("   hecke_errors.npy")
+print("   quantum_dimension_errors.npy")
+print("   degeneration_index.npy")
+print("   Quantum_Satake_report.txt")
+
+print()
+print("="*70)
+print("Section 9 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Construct H42 ambient space
+
+#
+
+###############################################################
+
+print("="*70)
+print("Construct H42")
+print("="*70)
+
+###############################################################
+
+# symmetric matrices on imaginary octonion space
+
+###############################################################
+
+Sym_basis = []
+
+for i in range(7):
+
+```
+for j in range(i,7):
+
+    S = np.zeros((7,7))
+
+    if i == j:
+
+        S[i,j] = 1.0
+
+    else:
+
+        S[i,j] = 1/np.sqrt(2)
+        S[j,i] = 1/np.sqrt(2)
+
+    Sym_basis.append(S)
+```
+
+print(
+"Sym^2 dimension =",
+len(Sym_basis)
+)
+
+###############################################################
+
+# traceless + identity decomposition
+
+###############################################################
+
+I7 = np.eye(7)/np.sqrt(7)
+
+Sym_traceless=[]
+
+for S in Sym_basis:
+
+```
+T = S - np.trace(S)/7*np.eye(7)
+
+if norm(T)>1e-12:
+
+    Sym_traceless.append(T)
+```
+
+print(
+"Sym^2_0 dimension =",
+len(Sym_traceless)
+)
+
+###############################################################
+
+# H42
+
+###############################################################
+
+H42_basis=[]
+
+# g2
+
+for X in g2_basis:
+
+```
+H42_basis.append(X)
+```
+
+# symmetric sector
+
+for S in Sym_basis:
+
+```
+H42_basis.append(S)
+```
+
+print(
+"H42 dimension =",
+len(H42_basis)
+)
+
+if len(H42_basis)!=42:
+
+```
+raise RuntimeError(
+    "H42 construction failed"
+)
+```
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H42_basis.npy"
+),
+np.array(H42_basis)
+)
+
+print("Saved H42_basis.npy")
+
+###############################################################
+
+#
+
+# Construct H42 ambient space
+
+#
+
+###############################################################
+
+print("="*70)
+print("Construct H42")
+print("="*70)
+
+###############################################################
+
+# Sym^2(7)
+
+###############################################################
+
+Sym_basis=[]
+
+for i in range(7):
+
+```
+for j in range(i,7):
+
+    S=np.zeros((7,7))
+
+    if i==j:
+
+        S[i,j]=1.0
+
+    else:
+
+        S[i,j]=1/np.sqrt(2)
+        S[j,i]=1/np.sqrt(2)
+
+
+    Sym_basis.append(S)
+```
+
+print(
+"Sym^2 dimension =",
+len(Sym_basis)
+)
+
+###############################################################
+
+# traceless decomposition check
+
+###############################################################
+
+I7=np.eye(7)/np.sqrt(7)
+
+Sym_traceless=[]
+
+for S in Sym_basis:
+
+```
+T=S-np.trace(S)/7*np.eye(7)
+
+if norm(T)>1e-12:
+
+    Sym_traceless.append(T)
+```
+
+print(
+"Sym^2_0 dimension =",
+len(Sym_traceless)
+)
+
+print(
+"scalar sector dimension = 1"
+)
+
+###############################################################
+
+# H42
+
+###############################################################
+
+H42_basis=[]
+
+#
+
+# g2
+
+#
+
+for X in g2_basis:
+
+```
+H42_basis.append(X)
+```
+
+#
+
+# full Sym^2(7)
+
+#
+
+for S in Sym_basis:
+
+```
+H42_basis.append(S)
+```
+
+print()
+
+print(
+"H42 dimension =",
+len(H42_basis)
+)
+
+if len(H42_basis)!=42:
+
+```
+raise RuntimeError(
+    "H42 dimension error"
+)
+```
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H42_basis.npy"
+),
+np.array(H42_basis)
+)
+
+print()
+
+print(
+"Saved H42_basis.npy"
+)
+
+###############################################################
+
+#
+
+# Section 10
+
+#
+
+# H42 -> H17 projection
+
+# Dissipative kernel analysis
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 10")
+print("42 -> 17 projection / dissipative kernel")
+print("="*70)
+
+import numpy as np
+import os
+
+###############################################################
+
+# Load H17
+
+###############################################################
+
+H17 = np.load(
+os.path.join(
+SAVE_DIR,
+"H17_basis.npy"
+)
+)
+
+print()
+print("H17 shape")
+print(H17.shape)
+
+###############################################################
+
+# Load H42
+
+###############################################################
+
+H42_path = os.path.join(
+SAVE_DIR,
+"H42_basis.npy"
+)
+
+if not os.path.exists(H42_path):
+
+```
+raise FileNotFoundError(
+    """
+```
+
+H42_basis.npy not found.
+
+Need 42 dimensional ambient basis.
+"""
+)
+
+H42 = np.load(H42_path)
+
+print()
+print("H42 shape")
+print(H42.shape)
+
+###############################################################
+
+# flatten basis
+
+###############################################################
+
+def flatten_basis(B):
+
+```
+return np.column_stack(
+    [
+        x.reshape(-1)
+        for x in B
+    ]
+)
+```
+
+A42 = flatten_basis(H42)
+A17 = flatten_basis(H17)
+
+###############################################################
+
+# Orthogonal projection
+
+###############################################################
+
+print()
+print("="*70)
+print("Projection")
+print("="*70)
+
+# QR orthonormalization
+
+Q17,_ = np.linalg.qr(A17)
+
+P17 = Q17 @ Q17.T
+
+###############################################################
+
+# Project each H42 vector
+
+###############################################################
+
+stable=[]
+dissipative=[]
+
+for i in range(A42.shape[1]):
+
+```
+v=A42[:,i]
+
+
+pv=P17@v
+
+dv=v-pv
+
+
+stable.append(
+    np.linalg.norm(pv)
+)
+
+
+dissipative.append(
+    np.linalg.norm(dv)
+)
+```
+
+stable=np.array(stable)
+dissipative=np.array(dissipative)
+
+print()
+print("stable contribution")
+print(stable)
+
+print()
+print("dissipative contribution")
+print(dissipative)
+
+###############################################################
+
+# Dimension estimate
+
+###############################################################
+
+print()
+print("="*70)
+print("Dimension analysis")
+print("="*70)
+
+threshold=1e-10
+
+stable_dim=np.sum(
+stable>threshold
+)
+
+diss_dim=np.sum(
+dissipative>threshold
+)
+
+print(
+"stable dimension =",
+stable_dim
+)
+
+print(
+"dissipative dimension =",
+diss_dim
+)
+
+###############################################################
+
+# Dissipation ratio
+
+###############################################################
+
+ratio = (
+dissipative /
+(
+stable+dissipative+1e-15
+)
+)
+
+print()
+print("dissipation ratios")
+
+print(ratio)
+
+###############################################################
+
+# Correlation with Krylov stopping
+
+###############################################################
+
+tau_path=os.path.join(
+SAVE_DIR,
+"krylov_tau.npy"
+)
+
+if os.path.exists(tau_path):
+
+```
+tau=np.load(tau_path)
+
+
+if len(tau)==len(ratio):
+
+    corr=np.corrcoef(
+        tau,
+        ratio
+    )[0,1]
+
+
+    print()
+    print(
+        "Krylov correlation =",
+        corr
+    )
+
+else:
+
+    print(
+        "tau dimension mismatch"
+    )
+```
+
+###############################################################
+
+# Spectral decomposition
+
+###############################################################
+
+print()
+print("="*70)
+print("Dissipative spectrum")
+print("="*70)
+
+D=np.diag(
+dissipative
+)
+
+eig=np.linalg.eigvals(D)
+
+print(
+eig
+)
+
+###############################################################
+
+# Save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H42_H17_stable.npy"
+),
+stable
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H42_dissipative.npy"
+),
+dissipative
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"dissipation_ratio.npy"
+),
+ratio
+)
+
+report=os.path.join(
+SAVE_DIR,
+"Dissipative_kernel_report.txt"
+)
+
+with open(report,"w") as f:
+
+```
+f.write(
+```
+
+f"""
+42 -> 17 Dissipative Kernel Analysis
+
+stable dimension:
+{stable_dim}
+
+dissipative dimension:
+{diss_dim}
+
+average stable:
+{np.mean(stable)}
+
+average dissipative:
+{np.mean(dissipative)}
+
+"""
+)
+
+print()
+print("Saved")
+print(" H42_H17_stable.npy")
+print(" H42_dissipative.npy")
+print(" dissipation_ratio.npy")
+print(" Dissipative_kernel_report.txt")
+
+print()
+print("="*70)
+print("Section 10 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# True H42 -> H17 + K25 decomposition
+
+#
+
+###############################################################
+
+print("="*70)
+print("H42 coordinate decomposition")
+print("="*70)
+
+###############################################################
+
+# H42 matrix
+
+###############################################################
+
+B42 = np.array(
+[
+X.reshape(-1)
+for X in H42_basis
+]
+).T
+
+###############################################################
+
+# H17 inside H42 coordinates
+
+###############################################################
+
+B17 = np.array(
+[
+X.reshape(-1)
+for X in H17_basis
+]
+).T
+
+# solve coordinates
+
+C17,*,*,_ = np.linalg.lstsq(
+B42,
+B17,
+rcond=None
+)
+
+###############################################################
+
+# orthonormalize H17 coordinates
+
+###############################################################
+
+Q17,_ = np.linalg.qr(C17)
+
+###############################################################
+
+# projector in R^42
+
+###############################################################
+
+P17_42 = Q17 @ Q17.T
+
+P25_42 = np.eye(42)-P17_42
+
+rank17=np.linalg.matrix_rank(
+P17_42
+)
+
+rank25=np.linalg.matrix_rank(
+P25_42
+)
+
+print()
+
+print("rank H17 =",rank17)
+print("rank K25 =",rank25)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_projector_42.npy"
+),
+P17_42
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"K25_projector_42.npy"
+),
+P25_42
+)
+
+print()
+
+print("saved")
+
+###############################################################
+
+#
+
+# Section 11
+
+# H17-K25 directional coupling analysis
+
+#
+
+###############################################################
+
+print("="*70)
+print("Section 11")
+print("17 stable kernel / 25 dissipative coupling")
+print("="*70)
+
+###############################################################
+
+# load projectors
+
+###############################################################
+
+P17 = np.load(
+os.path.join(
+SAVE_DIR,
+"H17_projector_42.npy"
+)
+)
+
+P25 = np.load(
+os.path.join(
+SAVE_DIR,
+"K25_projector_42.npy"
+)
+)
+
+###############################################################
+
+# convert H42 generators to coordinate matrices
+
+###############################################################
+
+B42 = np.array(
+[
+X.reshape(-1)
+for X in H42_basis
+]
+).T
+
+# Gram inverse
+
+G42 = B42.T @ B42
+
+G42_inv = np.linalg.inv(G42)
+
+coupling_25_to_17=[]
+coupling_17_to_25=[]
+
+###############################################################
+
+# generators
+
+###############################################################
+
+for A in H42_basis:
+
+```
+vecA=A.reshape(-1)
+
+
+# coordinate representation
+
+a = G42_inv @ B42.T @ vecA
+
+
+A42 = np.outer(a,np.ones(42))
+
+#
+# rank-one action approximation
+#
+
+C1 = P17 @ A42 @ P25
+
+C2 = P25 @ A42 @ P17
+
+
+coupling_25_to_17.append(
+    np.linalg.norm(C1)
+)
+
+
+coupling_17_to_25.append(
+    np.linalg.norm(C2)
+)
+```
+
+###############################################################
+
+# statistics
+
+###############################################################
+
+print()
+
+print("K25 -> H17")
+
+print(
+"max =",
+np.max(coupling_25_to_17)
+)
+
+print(
+"mean =",
+np.mean(coupling_25_to_17)
+)
+
+print()
+
+print("H17 -> K25")
+
+print(
+"max =",
+np.max(coupling_17_to_25)
+)
+
+print(
+"mean =",
+np.mean(coupling_17_to_25)
+)
+
+###############################################################
+
+# asymmetry index
+
+###############################################################
+
+ratio = (
+np.array(coupling_25_to_17)
+/
+(
+np.array(coupling_17_to_25)
++1e-15
+)
+)
+
+print()
+
+print("directionality index")
+
+print(
+"max =",
+np.max(ratio)
+)
+
+print(
+"mean =",
+np.mean(ratio)
+)
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"K25_to_H17.npy"
+),
+np.array(coupling_25_to_17)
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_to_K25.npy"
+),
+np.array(coupling_17_to_25)
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"directionality_index.npy"
+),
+ratio
+)
+
+print()
+
+print("Saved")
+
+print(" K25_to_H17.npy")
+print(" H17_to_K25.npy")
+print(" directionality_index.npy")
+
+print()
+
+print("="*70)
+print("Section 11 complete")
+print("="*70)
+
+###############################################################
+
+# locate files automatically
+
+###############################################################
+
+import glob
+import os
+import numpy as np
+
+print("Searching files...")
+
+files = glob.glob(
+"**/H42_basis.npy",
+recursive=True
+)
+
+if len(files)==0:
+raise FileNotFoundError(
+"""
+H42_basis.npy not found.
+
+Run Section 10 again and save H42_basis.npy
+or check Google Drive mount path.
+"""
+)
+
+SAVE_DIR=os.path.dirname(files[0])
+
+print()
+print("Found:")
+print(
+os.path.join(
+SAVE_DIR,
+"H42_basis.npy"
+)
+)
+
+###############################################################
+
+# Section 12 Load
+
+###############################################################
+
+import numpy as np
+import os
+
+SAVE_DIR="H17_data"
+
+print("Loading from")
+print(SAVE_DIR)
+
+H42_basis=np.load(
+os.path.join(
+SAVE_DIR,
+"H42_basis.npy"
+)
+)
+
+P17=np.load(
+os.path.join(
+SAVE_DIR,
+"H17_projector_42.npy"
+)
+)
+
+PK=np.load(
+os.path.join(
+SAVE_DIR,
+"K25_projector_42.npy"
+)
+)
+
+print()
+
+print("H42 shape")
+print(H42_basis.shape)
+
+print("P17 shape")
+print(P17.shape)
+
+print("PK shape")
+print(PK.shape)
+
+###############################################################
+
+# coordinate representation
+
+###############################################################
+
+B42=np.array(
+[
+X.reshape(-1)
+for X in H42_basis
+]
+).T
+
+G=B42.T @ B42
+
+Ginv=np.linalg.inv(G)
+
+print("Coordinate matrix")
+print(B42.shape)
+
+###############################################################
+
+#
+
+# Section 12
+
+#
+
+# H17 attractor / K25 dissipative flow analysis
+
+#
+
+###############################################################
+
+import numpy as np
+import os
+
+print("="*70)
+print("Section 12")
+print("H17 attractor / K25 dissipation flow")
+print("="*70)
+
+###############################################################
+
+# directory
+
+###############################################################
+
+SAVE_DIR="H17_data"
+
+###############################################################
+
+# load
+
+###############################################################
+
+print()
+print("Loading data")
+
+H42_basis=np.load(
+os.path.join(
+SAVE_DIR,
+"H42_basis.npy"
+)
+)
+
+P17=np.load(
+os.path.join(
+SAVE_DIR,
+"H17_projector_42.npy"
+)
+)
+
+PK=np.load(
+os.path.join(
+SAVE_DIR,
+"K25_projector_42.npy"
+)
+)
+
+print()
+
+print("H42")
+print(H42_basis.shape)
+
+print("P17")
+print(P17.shape)
+
+print("PK")
+print(PK.shape)
+
+###############################################################
+
+# coordinate representation
+
+###############################################################
+
+print()
+print("Building H42 coordinate map")
+
+B42=np.array(
+[
+X.reshape(-1)
+for X in H42_basis
+]
+).T
+
+G42=B42.T @ B42
+
+G42_inv=np.linalg.pinv(G42)
+
+print("B42")
+print(B42.shape)
+
+###############################################################
+
+# dimension
+
+###############################################################
+
+assert H42_basis.shape[0]==42
+assert P17.shape==(42,42)
+assert PK.shape==(42,42)
+
+H17_indices=np.where(
+np.diag(P17)>0.5
+)[0]
+
+K25_indices=np.where(
+np.diag(PK)>0.5
+)[0]
+
+print()
+
+print("H17 dimension")
+print(len(H17_indices))
+
+print()
+
+print("K25 dimension")
+print(len(K25_indices))
+
+###############################################################
+
+# block analysis
+
+###############################################################
+
+alpha_list=[]
+
+Sigma_list=[]
+
+entropy_list=[]
+
+for n,A in enumerate(H42_basis):
+
+```
+###########################################################
+# 7x7 matrix -> 42 coordinate vector
+###########################################################
+
+vec=A.reshape(-1)
+
+
+coeff=G42_inv @ B42.T @ vec
+
+
+
+###########################################################
+# coordinate operator
+###########################################################
+
+M=np.outer(
+    coeff,
+    coeff
+)
+
+
+
+###########################################################
+# H17 / K25 blocks
+###########################################################
+
+Ass=P17 @ M @ P17
+
+Asd=P17 @ M @ PK
+
+Ads=PK @ M @ P17
+
+Add=PK @ M @ PK
+
+
+
+###########################################################
+# attractor index
+###########################################################
+
+stable_norm=np.linalg.norm(
+    Ass
+)
+
+
+coupling_norm=np.linalg.norm(
+    Ads
+)
+
+
+alpha=(
+    stable_norm /
+    (
+        stable_norm
+        +
+        coupling_norm
+        +
+        1e-15
+    )
+)
+
+
+alpha_list.append(alpha)
+
+
+
+###########################################################
+# Schur correction
+###########################################################
+
+try:
+
+    Add_inv=np.linalg.pinv(
+        Add
+    )
+
+
+    Sigma=(
+        Asd
+        @
+        Add_inv
+        @
+        Ads
+    )
+
+
+    Sigma_norm=np.linalg.norm(
+        Sigma
+    )
+
+
+except Exception:
+
+    Sigma_norm=np.nan
+
+
+
+Sigma_list.append(
+    Sigma_norm
+)
+
+
+
+###########################################################
+# K25 entropy
+###########################################################
+
+sv=np.linalg.svd(
+    Add,
+    compute_uv=False
+)
+
+
+if np.sum(sv)>1e-15:
+
+    p=sv/np.sum(sv)
+
+
+    entropy = -np.sum(
+p*np.log(
+    p+1e-15
+)
+```
+
+)
+
+```
+else:
+
+    entropy=0
+
+
+
+entropy_list.append(
+    entropy
+)
+```
+
+###############################################################
+
+# arrays
+
+###############################################################
+
+alpha_list=np.array(alpha_list)
+
+Sigma_list=np.array(Sigma_list)
+
+entropy_list=np.array(entropy_list)
+
+###############################################################
+
+# report
+
+###############################################################
+
+print()
+
+print("="*70)
+print("Attractor index")
+print("="*70)
+
+print(
+"mean alpha =",
+np.mean(alpha_list)
+)
+
+print(
+"min alpha =",
+np.min(alpha_list)
+)
+
+print(
+"max alpha =",
+np.max(alpha_list)
+)
+
+print()
+
+print("="*70)
+print("Schur dissipation")
+print("="*70)
+
+print(
+"mean Sigma =",
+np.nanmean(Sigma_list)
+)
+
+print(
+"max Sigma =",
+np.nanmax(Sigma_list)
+)
+
+print()
+
+print("="*70)
+print("K25 entropy")
+print("="*70)
+
+print(
+"mean entropy =",
+np.mean(entropy_list)
+)
+
+print(
+"max entropy =",
+np.max(entropy_list)
+)
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_attractor_index.npy"
+),
+alpha_list
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_Schur_dissipation.npy"
+),
+Sigma_list
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"K25_entropy.npy"
+),
+entropy_list
+)
+
+with open(
+os.path.join(
+SAVE_DIR,
+"Attractor_Dissipation_report.txt"
+),
+"w"
+) as f:
+
+```
+f.write(
+    "H17 attractor / K25 dissipation\n"
+)
+
+f.write(
+    "==============================\n"
+)
+
+f.write(
+    f"mean alpha = {np.mean(alpha_list)}\n"
+)
+
+f.write(
+    f"mean Sigma = {np.nanmean(Sigma_list)}\n"
+)
+
+f.write(
+    f"mean entropy = {np.mean(entropy_list)}\n"
+)
+```
+
+print()
+
+print("Saved")
+
+print(
+"""
+H17_attractor_index.npy
+H17_Schur_dissipation.npy
+K25_entropy.npy
+Attractor_Dissipation_report.txt
+"""
+)
+
+print("="*70)
+print("Section 12 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 13
+
+#
+
+# Effective H17 dynamics
+
+# corrected coordinate version
+
+#
+
+###############################################################
+
+import numpy as np
+import os
+
+print("="*70)
+print("Section 13")
+print("Effective H17 dynamics")
+print("K25 renormalized closure")
+print("="*70)
+
+SAVE_DIR="H17_data"
+
+###############################################################
+
+# Load
+
+###############################################################
+
+H42_basis=np.load(
+os.path.join(
+SAVE_DIR,
+"H42_basis.npy"
+)
+)
+
+P17=np.load(
+os.path.join(
+SAVE_DIR,
+"H17_projector_42.npy"
+)
+)
+
+PK=np.load(
+os.path.join(
+SAVE_DIR,
+"K25_projector_42.npy"
+)
+)
+
+print("H42",
+H42_basis.shape)
+
+###############################################################
+
+# build coordinate map
+
+###############################################################
+
+B42=np.array(
+[
+A.reshape(-1)
+for A in H42_basis
+]
+).T
+
+G=B42.T@B42
+
+Ginv=np.linalg.inv(G)
+
+print()
+
+print("Coordinate map")
+print(B42.shape)
+
+###############################################################
+
+# H42 coordinate operators
+
+###############################################################
+
+coords=[]
+
+for A in H42_basis:
+
+```
+v=A.reshape(-1)
+
+c=Ginv@B42.T@v
+
+coords.append(c)
+```
+
+coords=np.array(coords)
+
+###############################################################
+
+# Effective Schur operators
+
+###############################################################
+
+Aeff=[]
+
+Sigma=[]
+
+for a in coords:
+
+```
+A=np.outer(a,a)
+
+
+Ass=P17@A@P17
+
+Asd=P17@A@PK
+
+Ads=PK@A@P17
+
+Add=PK@A@PK
+
+
+
+Add_inv=np.linalg.pinv(
+    Add
+)
+
+
+S=Asd@Add_inv@Ads
+
+
+Ae=Ass-S
+
+
+Aeff.append(Ae)
+
+Sigma.append(
+    np.linalg.norm(S)
+)
+```
+
+Aeff=np.array(Aeff)
+
+print()
+
+print("Effective shape")
+print(Aeff.shape)
+
+###############################################################
+
+# closure test
+
+###############################################################
+
+leak=[]
+
+for i in range(len(Aeff)):
+
+```
+for j in range(len(Aeff)):
+
+
+    C=Aeff[i]@Aeff[j]-Aeff[j]@Aeff[i]
+
+
+    k=P17@C@PK
+
+
+    leak.append(
+        np.linalg.norm(k)
+    )
+```
+
+leak=np.array(leak)
+
+print()
+print("="*70)
+print("Closure")
+print("="*70)
+
+print(
+"max leakage",
+np.max(leak)
+)
+
+print(
+"mean leakage",
+np.mean(leak)
+)
+
+###############################################################
+
+# spectrum
+
+###############################################################
+
+spectra=[]
+
+for A in Aeff:
+
+```
+spectra.extend(
+    np.linalg.eigvals(A)
+)
+```
+
+spectra=np.array(
+spectra
+)
+
+print()
+
+print("="*70)
+print("Spectrum")
+print("="*70)
+
+print(
+"radius",
+np.max(
+np.abs(spectra)
+)
+)
+
+print(
+"mean",
+np.mean(
+np.abs(spectra)
+)
+)
+
+###############################################################
+
+# flow
+
+###############################################################
+
+print()
+
+print("="*70)
+print("Effective flow")
+print("="*70)
+
+Amean=np.mean(
+Aeff,
+axis=0
+)
+
+x=np.random.randn(42)
+
+x=x/np.linalg.norm(x)
+
+flow=[]
+
+for t in range(100):
+
+```
+flow.append(
+    np.linalg.norm(
+        P17@x
+    )
+)
+
+
+x=Amean@x
+
+x=x/(np.linalg.norm(x)+1e-15)
+```
+
+flow=np.array(flow)
+
+print(
+"start",
+flow[0]
+)
+
+print(
+"end",
+flow[-1]
+)
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_effective_operator.npy"
+),
+Aeff
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_closure_leak.npy"
+),
+leak
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_effective_spectrum.npy"
+),
+spectra
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_effective_flow.npy"
+),
+flow
+)
+
+with open(
+os.path.join(
+SAVE_DIR,
+"Section13_report.txt"
+),
+"w"
+) as f:
+
+```
+f.write(
+    "Effective H17 dynamics\n"
+)
+
+f.write(
+    f"closure max={np.max(leak)}\n"
+)
+
+f.write(
+    f"closure mean={np.mean(leak)}\n"
+)
+
+f.write(
+    f"spectral radius={np.max(np.abs(spectra))}\n"
+)
+```
+
+print()
+
+print("Saved")
+
+print("""
+H17_effective_operator.npy
+H17_closure_leak.npy
+H17_effective_spectrum.npy
+H17_effective_flow.npy
+Section13_report.txt
+""")
+
+print("="*70)
+print("Section 13 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 13.5
+
+#
+
+# H42 structure constants
+
+# 17 stable / 25 dissipative renormalization
+
+#
+
+###############################################################
+
+import numpy as np
+import os
+
+print("="*70)
+print("Section 13.5")
+print("H42 structure constant renormalization")
+print("17 stable / 25 dissipative")
+print("="*70)
+
+SAVE_DIR="H17_data"
+
+###############################################################
+
+# Load
+
+###############################################################
+
+H42_basis=np.load(
+os.path.join(
+SAVE_DIR,
+"H42_basis.npy"
+)
+)
+
+P17=np.load(
+os.path.join(
+SAVE_DIR,
+"H17_projector_42.npy"
+)
+)
+
+PK=np.load(
+os.path.join(
+SAVE_DIR,
+"K25_projector_42.npy"
+)
+)
+
+print("H42 basis")
+print(H42_basis.shape)
+
+###############################################################
+
+# coordinate map
+
+###############################################################
+
+B42=np.array(
+[
+A.reshape(-1)
+for A in H42_basis
+]
+).T
+
+G=B42.T@B42
+
+Ginv=np.linalg.inv(G)
+
+###############################################################
+
+# multiplication tensor
+
+###############################################################
+
+print()
+print("Building structure tensor")
+
+C=np.zeros(
+(42,42,42)
+)
+
+for i in range(42):
+
+```
+Ai=H42_basis[i]
+
+
+for j in range(42):
+
+
+    Aj=H42_basis[j]
+
+
+    product=Ai@Aj
+
+
+    coeff=Ginv@B42.T@product.reshape(-1)
+
+
+    C[i,j,:]=coeff
+```
+
+print("Tensor")
+print(C.shape)
+
+###############################################################
+
+# commutator tensor
+
+###############################################################
+
+Lie=C-C.transpose(1,0,2)
+
+###############################################################
+
+# project indices
+
+###############################################################
+
+P17_diag=np.diag(P17)
+
+K_diag=np.diag(PK)
+
+H17_idx=np.where(
+P17_diag>0.5
+)[0]
+
+K25_idx=np.where(
+K_diag>0.5
+)[0]
+
+print()
+print("H17")
+print(len(H17_idx))
+
+print("K25")
+print(len(K25_idx))
+
+###############################################################
+
+# leakage of H17
+
+###############################################################
+
+print()
+print("="*70)
+print("H17 Lie closure")
+print("="*70)
+
+closure=[]
+
+for i in H17_idx:
+
+```
+for j in H17_idx:
+
+
+    vec=Lie[i,j,:]
+
+
+    leak=np.linalg.norm(
+        vec[K25_idx]
+    )
+
+
+    closure.append(leak)
+```
+
+closure=np.array(
+closure
+)
+
+print(
+"max leakage",
+np.max(closure)
+)
+
+print(
+"mean leakage",
+np.mean(closure)
+)
+
+###############################################################
+
+# Schur effective bracket
+
+###############################################################
+
+print()
+print("="*70)
+print("Effective bracket")
+print("="*70)
+
+Ceff=np.zeros(
+(17,17,17)
+)
+
+# extract stable block
+
+for a,i in enumerate(H17_idx):
+
+```
+for b,j in enumerate(H17_idx):
+
+
+    # direct stable part
+
+    Ceff[a,b,:]=(
+        Lie[i,j,H17_idx]
+    )
+```
+
+# dissipative correction
+
+correction=[]
+
+for i in H17_idx:
+
+```
+for j in H17_idx:
+
+
+    sd=Lie[i,j,K25_idx]
+
+
+    norm=np.linalg.norm(sd)
+
+    correction.append(norm)
+```
+
+correction=np.array(
+correction
+)
+
+print(
+"dissipative coupling"
+)
+
+print(
+"max",
+np.max(correction)
+)
+
+print(
+"mean",
+np.mean(correction)
+)
+
+###############################################################
+
+# Jacobi test on H17 effective algebra
+
+###############################################################
+
+print()
+print("="*70)
+print("Jacobi H17")
+print("="*70)
+
+jac=[]
+
+for a in range(17):
+
+```
+for b in range(17):
+
+    for c in range(17):
+
+
+        s=0
+
+
+        for d in range(17):
+
+
+            s+=(
+                Ceff[a,b,d]*Ceff[d,c,:]
+                +
+                Ceff[b,c,d]*Ceff[d,a,:]
+                +
+                Ceff[c,a,d]*Ceff[d,b,:]
+            )
+
+
+        jac.append(
+            np.linalg.norm(s)
+        )
+```
+
+jac=np.array(jac)
+
+print(
+"max Jacobi",
+np.max(jac)
+)
+
+print(
+"mean Jacobi",
+np.mean(jac)
+)
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H42_structure_tensor.npy"
+),
+C
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_effective_bracket.npy"
+),
+Ceff
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_closure_leak_real.npy"
+),
+closure
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_Jacobi.npy"
+),
+jac
+)
+
+with open(
+os.path.join(
+SAVE_DIR,
+"Section13_5_report.txt"
+),
+"w"
+) as f:
+
+```
+f.write(
+    "H42 structure constant renormalization\n\n"
+)
+
+f.write(
+    f"H17 closure max={np.max(closure)}\n"
+)
+
+f.write(
+    f"H17 Jacobi max={np.max(jac)}\n"
+)
+
+f.write(
+    f"dissipative coupling mean={np.mean(correction)}\n"
+)
+```
+
+print()
+
+print("Saved")
+
+print("""
+H42_structure_tensor.npy
+H17_effective_bracket.npy
+H17_closure_leak_real.npy
+H17_Jacobi.npy
+Section13_5_report.txt
+""")
+
+print("="*70)
+print("Section 13.5 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 14
+
+#
+
+# Renormalized H17 algebra
+
+# K25 feedback correction
+
+#
+
+###############################################################
+
+import numpy as np
+import os
+
+print("="*70)
+print("Section 14")
+print("Renormalized H17 algebra")
+print("K25 feedback correction")
+print("="*70)
+
+SAVE_DIR="H17_data"
+
+###############################################################
+
+# load
+
+###############################################################
+
+H42=np.load(
+os.path.join(
+SAVE_DIR,
+"H42_structure_tensor.npy"
+)
+)
+
+P17=np.load(
+os.path.join(
+SAVE_DIR,
+"H17_projector_42.npy"
+)
+)
+
+PK=np.load(
+os.path.join(
+SAVE_DIR,
+"K25_projector_42.npy"
+)
+)
+
+print()
+
+print("Structure tensor")
+print(H42.shape)
+
+###############################################################
+
+# indices
+
+###############################################################
+
+h17=np.where(
+np.diag(P17)>0.5
+)[0]
+
+k25=np.where(
+np.diag(PK)>0.5
+)[0]
+
+print()
+
+print("H17")
+print(len(h17))
+
+print("K25")
+print(len(k25))
+
+###############################################################
+
+# split tensor
+
+###############################################################
+
+B17=np.zeros(
+(17,17,17)
+)
+
+Leak=np.zeros(
+(17,17,25)
+)
+
+for i,a in enumerate(h17):
+
+```
+for j,b in enumerate(h17):
+
+    for c in range(17):
+
+        B17[i,j,c]=H42[a,b,h17[c]]
+
+
+    for d in range(25):
+
+        Leak[i,j,d]=H42[a,b,k25[d]]
+```
+
+###############################################################
+
+# K25 metric
+
+###############################################################
+
+Gk=np.eye(25)
+
+Gkinv=np.linalg.inv(Gk)
+
+###############################################################
+
+# feedback correction
+
+###############################################################
+
+Beff=np.zeros(
+(17,17,17)
+)
+
+for i in range(17):
+
+```
+for j in range(17):
+
+
+    correction=np.zeros(17)
+
+
+    for a in range(25):
+
+        for b in range(25):
+
+            # simple dissipative kernel
+
+            correction += (
+                Leak[i,j,a]
+                *
+                Gkinv[a,b]
+                *
+                Leak[i,j,b]
+            )*np.ones(17)/17
+
+
+
+    Beff[i,j,:]=(
+        B17[i,j,:]
+        -
+        correction
+    )
+```
+
+###############################################################
+
+# Jacobi test
+
+###############################################################
+
+jacobi=[]
+
+for i in range(17):
+
+```
+for j in range(17):
+
+    for k in range(17):
+
+
+        total=np.zeros(17)
+
+
+        for m in range(17):
+
+            total += (
+                Beff[i,j,m]
+                *
+                Beff[m,k,:]
+            )
+
+            total += (
+                Beff[j,k,m]
+                *
+                Beff[m,i,:]
+            )
+
+            total += (
+                Beff[k,i,m]
+                *
+                Beff[m,j,:]
+            )
+
+
+        jacobi.append(
+            np.linalg.norm(total)
+        )
+```
+
+jacobi=np.array(jacobi)
+
+print()
+print("="*70)
+print("Renormalized closure")
+print("="*70)
+
+print(
+"Jacobi max =",
+np.max(jacobi)
+)
+
+print(
+"Jacobi mean =",
+np.mean(jacobi)
+)
+
+###############################################################
+
+# eigen analysis
+
+###############################################################
+
+M=Beff.reshape(
+289,
+17
+)
+
+eig=np.linalg.eigvals(
+M.T@M
+)
+
+print()
+
+print("="*70)
+print("Effective spectrum")
+print("="*70)
+
+print(
+"largest =",
+np.max(np.abs(eig))
+)
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_renormalized_bracket.npy"
+),
+Beff
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_renormalized_Jacobi.npy"
+),
+jacobi
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_renormalized_spectrum.npy"
+),
+eig
+)
+
+with open(
+os.path.join(
+SAVE_DIR,
+"Section14_report.txt"
+),
+"w"
+) as f:
+
+```
+f.write(
+    "Renormalized H17 algebra\n"
+)
+
+f.write(
+    f"Jacobi max = {np.max(jacobi)}\n"
+)
+
+f.write(
+    f"Jacobi mean = {np.mean(jacobi)}\n"
+)
+```
+
+print()
+
+print("Saved")
+
+print(
+"""
+H17_renormalized_bracket.npy
+H17_renormalized_Jacobi.npy
+H17_renormalized_spectrum.npy
+Section14_report.txt
+"""
+)
+
+print("="*70)
+print("Section 14 complete")
+print("="*70)
+
+###############################################################
+
+#
+
+# Section 15
+
+#
+
+# Feshbach-Schur renormalized H17 algebra
+
+#
+
+# H17 stable kernel
+
+# K25 dissipative feedback
+
+#
+
+###############################################################
+
+import numpy as np
+import os
+
+print("="*70)
+print("Section 15")
+print("Feshbach-Schur renormalized H17 algebra")
+print("="*70)
+
+SAVE_DIR="H17_data"
+
+###############################################################
+
+# Load
+
+###############################################################
+
+print()
+print("Loading data")
+
+T42=np.load(
+os.path.join(
+SAVE_DIR,
+"H42_structure_tensor.npy"
+)
+)
+
+P17=np.load(
+os.path.join(
+SAVE_DIR,
+"H17_projector_42.npy"
+)
+)
+
+PK=np.load(
+os.path.join(
+SAVE_DIR,
+"K25_projector_42.npy"
+)
+)
+
+print()
+
+print("Tensor")
+print(T42.shape)
+
+###############################################################
+
+# indices
+
+###############################################################
+
+h17=np.where(
+np.diag(P17)>0.5
+)[0]
+
+k25=np.where(
+np.diag(PK)>0.5
+)[0]
+
+print()
+
+print("H17 =",len(h17))
+
+print("K25 =",len(k25))
+
+###############################################################
+
+# Split bracket
+
+###############################################################
+
+B=np.zeros(
+(17,17,17)
+)
+
+L=np.zeros(
+(17,17,25)
+)
+
+for i,a in enumerate(h17):
+
+```
+for j,b in enumerate(h17):
+
+    for c,x in enumerate(h17):
+
+        B[i,j,c]=T42[a,b,x]
+
+
+    for d,x in enumerate(k25):
+
+        L[i,j,d]=T42[a,b,x]
+```
+
+print()
+
+print("B")
+print(B.shape)
+
+print("Leak tensor")
+print(L.shape)
+
+###############################################################
+
+# Construct dissipative operator D_K
+
+#
+
+# From leakage covariance
+
+#
+
+###############################################################
+
+print()
+print("Building K25 dissipative kernel")
+
+D=np.zeros(
+(25,25)
+)
+
+for i in range(17):
+
+```
+for j in range(17):
+
+    v=L[i,j,:].reshape(25,1)
+
+    D += v@v.T
+```
+
+# regularization
+
+epsilon=1e-8
+
+D += epsilon*np.eye(25)
+
+print()
+
+print("D_K rank")
+
+print(
+np.linalg.matrix_rank(D)
+)
+
+###############################################################
+
+# inverse dissipative propagator
+
+###############################################################
+
+Dinv=np.linalg.inv(D)
+
+###############################################################
+
+# Schur correction
+
+#
+
+# L^T D^-1 L
+
+#
+
+###############################################################
+
+print()
+print("Renormalizing bracket")
+
+Bren=np.zeros(
+(17,17,17)
+)
+
+for i in range(17):
+
+```
+for j in range(17):
+
+
+    correction=np.zeros(17)
+
+
+
+    for a in range(25):
+
+        for b in range(25):
+
+
+            weight=(
+                L[i,j,a]
+                *
+                Dinv[a,b]
+            )
+
+
+            # distribute through original
+            # H17 channels
+
+            correction += (
+                weight
+                *
+                np.sum(L[:,:,b])
+                /
+                (17*17)
+            )
+
+
+    Bren[i,j,:]=(
+        B[i,j,:]
+        -
+        correction
+    )
+```
+
+###############################################################
+
+# Jacobi
+
+###############################################################
+
+print()
+print("="*70)
+print("Jacobi test")
+print("="*70)
+
+Jac=[]
+
+for i in range(17):
+
+```
+for j in range(17):
+
+    for k in range(17):
+
+
+        s=np.zeros(17)
+
+
+        for m in range(17):
+
+            s += (
+                Bren[i,j,m]
+                *
+                Bren[m,k,:]
+            )
+
+            s += (
+                Bren[j,k,m]
+                *
+                Bren[m,i,:]
+            )
+
+            s += (
+                Bren[k,i,m]
+                *
+                Bren[m,j,:]
+            )
+
+
+        Jac.append(
+            np.linalg.norm(s)
+        )
+```
+
+Jac=np.array(Jac)
+
+print(
+"Jacobi max =",
+np.max(Jac)
+)
+
+print(
+"Jacobi mean =",
+np.mean(Jac)
+)
+
+###############################################################
+
+# leakage after renormalization
+
+###############################################################
+
+print()
+print("="*70)
+print("Residual K25 leakage")
+print("="*70)
+
+residual=[]
+
+for i in range(17):
+
+```
+for j in range(17):
+
+    residual.append(
+        np.linalg.norm(L[i,j,:])
+    )
+```
+
+residual=np.array(residual)
+
+print(
+"max leakage =",
+np.max(residual)
+)
+
+print(
+"mean leakage =",
+np.mean(residual)
+)
+
+###############################################################
+
+# spectrum
+
+###############################################################
+
+print()
+print("="*70)
+print("Effective spectrum")
+print("="*70)
+
+M=Bren.reshape(
+289,
+17
+)
+
+spec=np.linalg.eigvals(
+M.T@M
+)
+
+print(
+"largest =",
+np.max(np.abs(spec))
+)
+
+###############################################################
+
+# save
+
+###############################################################
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_Feshbach_bracket.npy"
+),
+Bren
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_Feshbach_Jacobi.npy"
+),
+Jac
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"H17_Feshbach_spectrum.npy"
+),
+spec
+)
+
+np.save(
+os.path.join(
+SAVE_DIR,
+"K25_dissipative_operator.npy"
+),
+D
+)
+
+with open(
+os.path.join(
+SAVE_DIR,
+"Section15_report.txt"
+),
+"w"
+) as f:
+
+```
+f.write(
+    "Feshbach-Schur H17 renormalization\n\n"
+)
+
+f.write(
+    f"Jacobi max = {np.max(Jac)}\n"
+)
+
+f.write(
+    f"Jacobi mean = {np.mean(Jac)}\n"
+)
+
+f.write(
+    f"Spectrum max = {np.max(np.abs(spec))}\n"
+)
+```
+
+print()
+
+print("Saved")
+
+print("""
+H17_Feshbach_bracket.npy
+H17_Feshbach_Jacobi.npy
+H17_Feshbach_spectrum.npy
+K25_dissipative_operator.npy
+Section15_report.txt
+""")
+
+print("="*70)
+print("Section 15 complete")
+print("="*70)
+
+ーーーーーーーーーー
+以下、結果
+
+======================================================================
+H17 COMPLETE CONSTRUCTION
+=========================
+
+Constructed left multiplication matrices : 7
+
+======================================================================
+Section 1 complete
+==================
+
+Constructed L8,R8
+candidate generators : 21
+independent dimension : 14
+orthogonal dimension : 14
+
+Restricted g2 to imaginary part
+matrix size = (7, 7)
+====================
+
+Section 3
+Construct V_coh and H17
+=======================
+
+L matrix size = (7, 7)
+
+phi matrix size = (7, 7)
+
+Checking V_coh independence
+rank(V_coh) = 3
+
+Gram(V_coh)
+[[ 0.857143 -0.142857 -0.142857]
+[-0.142857  0.857143 -0.142857]
+[-0.142857 -0.142857  0.857143]]
+
+orthogonal dimension = 3
+
+dimension(H17) = 17
+
+Gram(H17) size = (17, 17)
+rank(H17) = 17
+
+Saved
+H17_basis.npy
+H17_gram.npy
+
+======================================================================
+H17 decomposition
+=================
+
+g2 dimension        : 14
+V_coh dimension     : 3
+H17 dimension       : 17
+
+H17 = g2 ⊕ V_coh
+
+======================================================================
+Section 3 complete
+==================
+
+======================================================================
+Section 4
+Lie bracket analysis
+====================
+
+Maximum closure error
+0.8944271909999161
+
+Average closure error
+0.1297568051921034
+
+Maximum relative leakage
+1.0
+
+Average relative leakage
+0.18685121107266436
+
+Antisymmetry error
+0.0
+
+======================================================================
+Projection analysis finished
+============================
+
+saved
+H17_lie_projection.npy
+H17_closure_error.npy
+H17_relative_error.npy
+
+======================================================================
+Section 4 complete
+==================
+
+======================================================================
+Section 5
+Jacobi identity
+===============
+
+Checking projected Jacobi identity...
+Maximum projected Jacobi error = 1.2412670766236366e-16
+
+Checking matrix Jacobi identity...
+Maximum matrix Jacobi error = 3.1401849173675503e-16
+
+Checking Jacobi projection residual...
+Maximum Jacobi projection residual = 1.8129866073473578e-16
+
+Saved : Jacobi_report.txt
+
+======================================================================
+Summary
+=======
+
+✓ Ambient matrix Lie algebra satisfies Jacobi.
+✓ Projected coefficients define a Lie algebra.
+
+======================================================================
+Section 5 complete
+==================
+
+======================================================================
+Section 6
+Krylov stopping structure
+=========================
+
+minimum tau = 1
+maximum tau = 4
+average tau = 2.764705882352941
+
+maximum leakage = 1.0
+average leakage = 0.8235294117647058
+correlation(tau,leak) = 0.33432392491786583
+
+Saved
+krylov_tau.npy
+krylov_leak.npy
+Krylov_report.txt
+
+======================================================================
+Section 6 complete
+==================
+
+======================================================================
+Section 7
+Hecke-Satake Fusion Analysis
+============================
+
+Jordan commutativity error
+0.0
+
+Maximum fusion leakage
+1.0
+
+Average fusion leakage
+0.766917526156416
+
+Fusion matrices constructed.
+
+======================================================================
+Fusion spectra
+==============
+
+Fusion matrix 0
+[-0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 1
+[-0. -0. -0. -0. -0. -0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 2
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 3
+[-0. -0. -0. -0. -0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 4
+[-0. -0. -0. -0. -0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 5
+[-0. -0. -0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 6
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 7
+[-0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 8
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 9
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 10
+[-0. -0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 11
+[-0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 12
+[-0. -0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 13
+[-0. -0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.  0.]
+
+Fusion matrix 14
+[-0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303 -0.154303  0.205738  0.205738  0.205738
+0.205738  0.205738  0.205738  0.771517]
+
+Fusion matrix 15
+[-0.182574 -0.182574 -0.182574 -0.182574 -0.138993 -0.138993 -0.138993 -0.138993 -0.121716 -0.031264  0.182574  0.199851  0.199851
+0.199851  0.199851  0.243432  0.761561]
+
+Fusion matrix 16
+[-0.223607 -0.223607 -0.223607 -0.111803 -0.111803 -0.111803 -0.111803 -0.076467 -0.074536 -0.        0.186339  0.186339  0.186339
+0.186339  0.223607  0.223607  0.747287]
+
+======================================================================
+Band structure analysis
+=======================
+
+Generator 0
+row  0 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(0)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(0)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(0)]
+
+Generator 1
+row  1 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row  9 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(1)]
+row 15 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row 16 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+
+Generator 2
+row  2 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(2)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(2)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(2)]
+
+Generator 3
+row  3 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 10 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(3)]
+row 15 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row 16 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+
+Generator 4
+row  4 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row  6 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(4)]
+row 15 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row 16 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+
+Generator 5
+row  5 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row  8 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(5)]
+row 15 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row 16 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+
+Generator 6
+row  4 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row  6 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(6)]
+row 15 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row 16 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+
+Generator 7
+row  7 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(7)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(7)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(7)]
+
+Generator 8
+row  5 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row  8 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(8)]
+row 15 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row 16 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+
+Generator 9
+row  1 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row  9 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(9)]
+row 15 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row 16 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+
+Generator 10
+row  3 : nnz= 2 band= 1 indices=[np.int64(15), np.int64(16)]
+row 10 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(10)]
+row 15 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row 16 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+
+Generator 11
+row 11 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(11)]
+
+Generator 12
+row 12 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(12)]
+
+Generator 13
+row 13 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(13)]
+
+Generator 14
+row  0 : nnz= 1 band= 0 indices=[np.int64(0)]
+row  1 : nnz= 1 band= 0 indices=[np.int64(1)]
+row  2 : nnz= 1 band= 0 indices=[np.int64(2)]
+row  3 : nnz= 1 band= 0 indices=[np.int64(3)]
+row  4 : nnz= 1 band= 0 indices=[np.int64(4)]
+row  5 : nnz= 1 band= 0 indices=[np.int64(5)]
+row  6 : nnz= 1 band= 0 indices=[np.int64(6)]
+row  7 : nnz= 1 band= 0 indices=[np.int64(7)]
+row  8 : nnz= 1 band= 0 indices=[np.int64(8)]
+row  9 : nnz= 1 band= 0 indices=[np.int64(9)]
+row 10 : nnz= 1 band= 0 indices=[np.int64(10)]
+row 11 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 12 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 13 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(14)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(15)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(16)]
+
+Generator 15
+row  0 : nnz= 1 band= 0 indices=[np.int64(0)]
+row  1 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row  2 : nnz= 1 band= 0 indices=[np.int64(2)]
+row  3 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row  4 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row  5 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row  6 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row  7 : nnz= 1 band= 0 indices=[np.int64(7)]
+row  8 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row  9 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row 10 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row 11 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 12 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 13 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(15)]
+row 15 : nnz= 2 band= 1 indices=[np.int64(14), np.int64(15)]
+row 16 : nnz= 1 band= 0 indices=[np.int64(16)]
+
+Generator 16
+row  0 : nnz= 1 band= 0 indices=[np.int64(0)]
+row  1 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row  2 : nnz= 1 band= 0 indices=[np.int64(2)]
+row  3 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row  4 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row  5 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row  6 : nnz= 2 band= 2 indices=[np.int64(4), np.int64(6)]
+row  7 : nnz= 1 band= 0 indices=[np.int64(7)]
+row  8 : nnz= 2 band= 3 indices=[np.int64(5), np.int64(8)]
+row  9 : nnz= 2 band= 8 indices=[np.int64(1), np.int64(9)]
+row 10 : nnz= 2 band= 7 indices=[np.int64(3), np.int64(10)]
+row 11 : nnz= 1 band= 0 indices=[np.int64(11)]
+row 12 : nnz= 1 band= 0 indices=[np.int64(12)]
+row 13 : nnz= 1 band= 0 indices=[np.int64(13)]
+row 14 : nnz= 1 band= 0 indices=[np.int64(16)]
+row 15 : nnz= 1 band= 0 indices=[np.int64(16)]
+row 16 : nnz= 3 band= 2 indices=[np.int64(14), np.int64(15), np.int64(16)]
+
+======================================================================
+Band statistics
+===============
+
+maximum bandwidth
+8.0
+
+average bandwidth
+0.6885813148788927
+
+maximum nnz
+3.0
+
+average nnz
+0.643598615916955
+
+======================================================================
+SU(2)-like detector
+===================
+
+generator 0 score = 0.0
+generator 1 score = 0.0
+generator 2 score = 0.0
+generator 3 score = 0.0
+generator 4 score = 0.0
+generator 5 score = 0.0
+generator 6 score = 0.0
+generator 7 score = 0.0
+generator 8 score = 0.0
+generator 9 score = 0.0
+generator 10 score = 0.0
+generator 11 score = 0.0
+generator 12 score = 0.0
+generator 13 score = 0.275304
+generator 14 score = 1.0
+generator 15 score = 0.689112
+generator 16 score = 0.678029
+
+======================================================================
+Coherent sector
+===============
+
+indices = [14, 15, 16]
+
+coherent tensor shape
+(3, 3, 3)
+
+coherent structure constants
+[[[ 0.771517 -0.       -0.      ]
+[-0.       -0.154303 -0.      ]
+[-0.       -0.       -0.154303]]
+
+[[-0.       -0.154303 -0.      ]
+[-0.154303  0.730297 -0.      ]
+[-0.       -0.       -0.182574]]
+
+[[-0.       -0.       -0.154303]
+[-0.       -0.       -0.182574]
+[-0.154303 -0.182574  0.67082 ]]]
+
+Saved
+H17_jordan_structure.npy
+H17_jordan_leak.npy
+H17_fusion_matrices.npy
+H17_fusion_spectra.npy
+H17_su2_scores.npy
+H17_coherent_fusion.npy
+Hecke_Satake_report.txt
+
+======================================================================
+Section 7 complete
+==================
+
+Loaded Jordan structure
+shape = (17, 17, 17)
+====================
+
+Section 8
+Verlinde-Satake analysis
+========================
+
+Coherent fusion tensor
+[[[ 0.771517 -0.       -0.      ]
+[-0.       -0.154303 -0.      ]
+[-0.       -0.       -0.154303]]
+
+[[-0.       -0.154303 -0.      ]
+[-0.154303  0.730297 -0.      ]
+[-0.       -0.       -0.182574]]
+
+[[-0.       -0.       -0.154303]
+[-0.       -0.       -0.182574]
+[-0.154303 -0.182574  0.67082 ]]]
+
+======================================================================
+Fusion commutativity
+====================
+
+maximum commutator = 0.20203050891044236
+
+======================================================================
+Fusion spectra
+==============
+
+F_0
+[-0.154303 -0.154303  0.771517]
+
+F_1
+[-0.182574 -0.031264  0.761561]
+
+F_2
+[-0.076467 -0.        0.747287]
+
+======================================================================
+A_n detector
+============
+
+Generator 0
+A_2 error = 1.43095
+A_3 error = 1.422759
+A_4 error = 1.543085
+A_5 error = 1.949289
+A_6 error = 2.321348
+A_7 error = 2.610972
+A_8 error = 2.830631
+A_9 error = 2.998082
+
+Generator 1
+A_2 error = 1.315937
+A_3 error = 1.394227
+A_4 error = 1.557384
+A_5 error = 1.979723
+A_6 error = 2.357158
+A_7 error = 2.648943
+A_8 error = 2.869624
+A_9 error = 3.037619
+
+Generator 2
+A_2 error = 1.361218
+A_3 error = 1.494776
+A_4 error = 1.665863
+A_5 error = 2.073499
+A_6 error = 2.440053
+A_7 error = 2.724995
+A_8 error = 2.941228
+A_9 error = 3.106187
+
+======================================================================
+Clebsch-Gordan detector
+=======================
+
+Generator 0
+nnz per row = [1, 1, 1]
+
+Generator 1
+nnz per row = [1, 2, 1]
+
+Generator 2
+nnz per row = [1, 1, 3]
+
+======================================================================
+Perron-Frobenius analysis
+=========================
+
+Generator 0
+spectral radius = 0.771517
+PF vector =
+[1. 0. 0.]
+
+Generator 1
+spectral radius = 0.761561
+PF vector =
+[0.198579 0.980085 0.      ]
+
+Generator 2
+spectral radius = 0.747287
+PF vector =
+[0.196668 0.2327   0.952456]
+
+Saved
+coherent_tensor.npy
+coherent_fusion_matrices.npy
+coherent_spectra.npy
+Verlinde_report.txt
+
+======================================================================
+Section 8 complete
+==================
+
+======================================================================
+Section 9
+Quantum Satake / Hecke degeneration
+===================================
+
+Fusion shape
+(3, 3, 3)
+
+======================================================================
+q-SU(2) eigenvalue detector
+===========================
+
+Fusion generator 0
+eigenvalues
+[ 0.771517 -0.154303 -0.154303]
+estimated q = 0.9999999999999996
+fit error = 3.2849987737154547
+
+Fusion generator 1
+eigenvalues
+[-0.031264  0.761561 -0.182574]
+estimated q = 0.9999999999999996
+fit error = 3.228528377491059
+
+Fusion generator 2
+eigenvalues
+[ 0.747287 -0.       -0.076467]
+estimated q = 0.9999999999999996
+fit error = 3.143406454992095
+
+======================================================================
+Hecke quadratic relation
+========================
+
+Generator 0
+Hecke error = 1.4386548895257898
+
+Generator 1
+Hecke error = 1.4522092013982868
+
+Generator 2
+Hecke error = 1.47760492911015
+
+======================================================================
+Quantum dimension recurrence
+============================
+
+Generator 0
+dimension error = 1.0952380952380951
+
+Generator 1
+dimension error = 0.9904761904761906
+
+Generator 2
+dimension error = 0.9941527919620207
+
+======================================================================
+Degeneration index
+==================
+
+q = 0.9999999999999996 degeneration = 4.440892098500627e-16
+q = 0.9999999999999996 degeneration = 4.440892098500627e-16
+q = 0.9999999999999996 degeneration = 4.440892098500627e-16
+
+Saved
+q_estimates.npy
+hecke_errors.npy
+quantum_dimension_errors.npy
+degeneration_index.npy
+Quantum_Satake_report.txt
+
+======================================================================
+Section 9 complete
+==================
+
+======================================================================
+Construct H42
+=============
+
+Sym^2 dimension = 28
+Sym^2_0 dimension = 28
+H42 dimension = 42
+Saved H42_basis.npy
+===================
+
+# Construct H42
+
+Sym^2 dimension = 28
+Sym^2_0 dimension = 28
+scalar sector dimension = 1
+
+H42 dimension = 42
+
+# Saved H42_basis.npy
+
+Section 10
+42 -> 17 projection / dissipative kernel
+========================================
+
+H17 shape
+(17, 7, 7)
+
+H42 shape
+(42, 7, 7)
+
+======================================================================
+Projection
+==========
+
+stable contribution
+[1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       1.       0.92582
+0.       0.       0.       0.       0.       0.       0.92582  0.       0.       0.       0.       0.       0.327327 0.       0.
+0.       0.       0.92582  0.       0.       0.       0.327327 0.       0.       0.327327 0.       0.327327]
+
+dissipative contribution
+[0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.377964
+
+1. ```
+     1.       1.       1.       1.       1.       0.377964 1.       1.       1.       1.       1.       0.944911 1.       1.
+   ```
+2. ```
+     1.       0.377964 1.       1.       1.       0.944911 1.       1.       0.944911 1.       0.944911]
+   ```
+
+======================================================================
+Dimension analysis
+==================
+
+stable dimension = 21
+dissipative dimension = 28
+
+dissipation ratios
+[0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.289898
+
+1. ```
+     1.       1.       1.       1.       1.       0.289898 1.       1.       1.       1.       1.       0.742716 1.       1.
+   ```
+2. ```
+     1.       0.289898 1.       1.       1.       0.742716 1.       1.       0.742716 1.       0.742716]
+   ```
+
+tau dimension mismatch
+
+======================================================================
+Dissipative spectrum
+====================
+
+[0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.       0.377964
+
+1. ```
+     1.       1.       1.       1.       1.       0.377964 1.       1.       1.       1.       1.       0.944911 1.       1.
+   ```
+2. ```
+     1.       0.377964 1.       1.       1.       0.944911 1.       1.       0.944911 1.       0.944911]
+   ```
+
+Saved
+H42_H17_stable.npy
+H42_dissipative.npy
+dissipation_ratio.npy
+Dissipative_kernel_report.txt
+
+======================================================================
+Section 10 complete
+===================
+
+======================================================================
+H42 coordinate decomposition
+============================
+
+rank H17 = 17
+rank K25 = 25
+
+# saved
+
+Section 11
+17 stable kernel / 25 dissipative coupling
+==========================================
+
+K25 -> H17
+max = 5.291502622129181
+mean = 2.2787185332567415
+
+H17 -> K25
+max = 3.7416573867739418
+mean = 2.3085614626929294
+
+directionality index
+max = 3485895516755960.0
+mean = 778393595947327.1
+
+Saved
+K25_to_H17.npy
+H17_to_K25.npy
+directionality_index.npy
+
+======================================================================
+Section 11 complete
+===================
+
+Searching files...
+
+Found:
+H17_data/H42_basis.npy
+Loading from
+H17_data
+
+H42 shape
+(42, 7, 7)
+P17 shape
+(42, 42)
+PK shape
+(42, 42)
+Coordinate matrix
+(49, 42)
+========
+
+Section 12
+H17 attractor / K25 dissipation flow
+====================================
+
+Loading data
+
+H42
+(42, 7, 7)
+P17
+(42, 42)
+PK
+(42, 42)
+
+Building H42 coordinate map
+B42
+(49, 42)
+
+H17 dimension
+17
+
+K25 dimension
+25
+
+======================================================================
+Attractor index
+===============
+
+mean alpha = 0.40855817266952277
+min alpha = 4.254818544606253e-17
+max alpha = 0.9999999999999987
+
+======================================================================
+Schur dissipation
+=================
+
+mean Sigma = 0.4047619047619048
+max Sigma = 1.0000000000000009
+
+======================================================================
+K25 entropy
+===========
+
+mean entropy = -1.317147248640208e-16
+max entropy = 4.540464176503521e-15
+
+Saved
+
+H17_attractor_index.npy
+H17_Schur_dissipation.npy
+K25_entropy.npy
+Attractor_Dissipation_report.txt
+
+======================================================================
+Section 12 complete
+===================
+
+======================================================================
+Section 13
+Effective H17 dynamics
+K25 renormalized closure
+========================
+
+H42 (42, 7, 7)
+
+Coordinate map
+(49, 42)
+
+Effective shape
+(42, 42, 42)
+
+======================================================================
+Closure
+=======
+
+max leakage 2.6021812847795224e-33
+mean leakage 1.1852134208911422e-35
+
+======================================================================
+Spectrum
+========
+
+radius 6.661338147750939e-16
+mean 1.7707008223224448e-18
+
+======================================================================
+Effective flow
+==============
+
+start 0.7867341920980152
+end 0.0
+
+Saved
+
+H17_effective_operator.npy
+H17_closure_leak.npy
+H17_effective_spectrum.npy
+H17_effective_flow.npy
+Section13_report.txt
+
+======================================================================
+Section 13 complete
+===================
+
+======================================================================
+Section 13.5
+H42 structure constant renormalization
+17 stable / 25 dissipative
+==========================
+
+H42 basis
+(42, 7, 7)
+
+Building structure tensor
+Tensor
+(42, 42, 42)
+
+H17
+17
+K25
+25
+
+======================================================================
+H17 Lie closure
+===============
+
+max leakage 0.8164965809277263
+mean leakage 0.11825471544969239
+
+======================================================================
+Effective bracket
+=================
+
+dissipative coupling
+max 0.8164965809277263
+mean 0.11825471544969239
+
+======================================================================
+Jacobi H17
+==========
+
+max Jacobi 3.3306690738754696e-16
+mean Jacobi 1.3095028744079856e-17
+
+Saved
+
+H42_structure_tensor.npy
+H17_effective_bracket.npy
+H17_closure_leak_real.npy
+H17_Jacobi.npy
+Section13_5_report.txt
+
+======================================================================
+Section 13.5 complete
+=====================
+
+======================================================================
+Section 14
+Renormalized H17 algebra
+K25 feedback correction
+=======================
+
+Structure tensor
+(42, 42, 42)
+
+H17
+17
+K25
+25
+
+======================================================================
+Renormalized closure
+====================
+
+Jacobi max = 3.0
+Jacobi mean = 0.06351593639248698
+
+======================================================================
+Effective spectrum
+==================
+
+largest = 2.1998402840627502
+
+Saved
+
+H17_renormalized_bracket.npy
+H17_renormalized_Jacobi.npy
+H17_renormalized_spectrum.npy
+Section14_report.txt
+
+======================================================================
+Section 14 complete
+===================
+
+======================================================================
+Section 15
+Feshbach-Schur renormalized H17 algebra
+=======================================
+
+Loading data
+
+Tensor
+(42, 42, 42)
+
+H17 = 17
+K25 = 25
+
+B
+(17, 17, 17)
+Leak tensor
+(17, 17, 25)
+
+Building K25 dissipative kernel
+
+D_K rank
+25
+
+Renormalizing bracket
+
+======================================================================
+Jacobi test
+===========
+
+Jacobi max = 3.0
+Jacobi mean = 0.0596664842573326
+
+======================================================================
+Residual K25 leakage
+====================
+
+max leakage = 0.5
+mean leakage = 0.2188571711399709
+
+======================================================================
+Effective spectrum
+==================
+
+largest = 2.1416590199120926
+
+Saved
+
+H17_Feshbach_bracket.npy
+H17_Feshbach_Jacobi.npy
+H17_Feshbach_spectrum.npy
+K25_dissipative_operator.npy
+Section15_report.txt
+
+======================================================================
+Section 15 complete
+===================
