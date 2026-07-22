@@ -151,8 +151,8 @@ Step 6
 - [ループツリー空間 (PDF)New](work8_33.pdf)
 - [停止ホッジ定理 (PDF)New](work8_34.pdf)
 - [ループ・ツリー構造の概念 (PDF)New](work8_35.pdf)	
-- -[ループ・ツリー理論：生成元別 Hashimoto 作用素の曲率構造 (PDF)New](work8_10.pdf)
-- - [停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現 (PDF)New](work8_7.pdf)
+--[ループ・ツリー理論：生成元別 Hashimoto 作用素の曲率構造 (PDF)New](work8_10.pdf)
+--[停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現 (PDF)New](work8_7.pdf)
 
 ##短報
 -[検証ノート：伊原ゼータ・有限グラフによる Loop–Tree 理論の検証 (PDF)New](work8_29.pdf)
