@@ -130,7 +130,7 @@ Step 6
  - [復元理論とスペクトル対応・検証報告書 (PDF)New](work8_16.pdf)
   - [検証ノート：伊原ゼータ・有限グラフによる Loop–Tree 理論の検証 (PDF)New](work8_29.pdf)
   - - [Loop-Tree理論・準連結空間理論 既存理論対応 検証記録 (PDF)New](work8_31.pdf)
-    - 
+  
 ##フラクタルリフトの簡単な解説
 - [復元構造におけるループツリー混合構造 (PDF)New](work8_11.pdf)
 - [Recovery Bass 圧縮の理論 (PDF)New](work8_12.pdf)
