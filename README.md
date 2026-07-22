@@ -119,8 +119,12 @@ Step 6
 
 ##コード検証 
 - [停止核についてのコード検証 (PDF)New](work8_26.pdf)
+  - [Pythonコード](code2.txt)
 - [復元理論とスペクトル対応・検証報告書 (PDF)New](work8_16.pdf)
+  - [Pythonコード](code3.txt)
 - [散逸付き１７閉包の停止核理論的数値検証および構造解析 (PDF)New](work8_30.pdf)
+  - [Pythonコード](code1.txt)
+  - [出力結果](code1_2.txt)
 - [停止核検出アルゴリズム (PDF)New](work8_2.pdf)
 - 
 ##復元理論２（３分解・疑似零元としての停止核）
