@@ -8,7 +8,7 @@
 数値計算をして概念探索してから、理論化している。
 
 ## Author
-
+work8 _51.pdf
 Hiroki Honda
 
 Independent Researcher
