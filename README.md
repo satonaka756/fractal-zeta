@@ -155,7 +155,7 @@ Step 6
 --[停止幾何学研究記録Mayer移送作用素によるファイバー化された停止核の実現 (PDF)New](work8_7.pdf)
 
 ##短報
--[検証ノート：伊原ゼータ・有限グラフによる Loop–Tree 理論の検証 (PDF)New](work8_29.pdf)
+- [検証ノート：伊原ゼータ・有限グラフによる Loop–Tree 理論の検証 (PDF)New](work8_29.pdf)
 - [Loop-Tree理論・準連結空間理論 既存理論対応 検証記録 (PDF)New](work8_31.pdf)
 - [非線形螺旋作用素の概念（復刻） (PDF)New](work8_37.pdf)
 - [生き残り幾何学（Survival Geometry） (PDF)New](work8_52.pdf)
